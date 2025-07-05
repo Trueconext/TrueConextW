@@ -1,8 +1,90 @@
-<!DOCTYPE html>
+import re
+import os
+import sys
+
+def get_youtube_embed_url(url):
+    """Extract YouTube video ID from a URL and return the embed URL."""
+    if not url:
+        return ""
+    video_id_match = re.search(r"(?:v=|\/)([0-9A-Za-z_-]{11}).*", url)
+    if video_id_match:
+        return f"https://www.youtube.com/embed/{video_id_match.group(1)}"
+    return url  # Return as-is if no match (assumes user provided embed URL directly)
+
+def generate_creator_html():
+    try:
+        # Collect user inputs
+        creator_name = input("Creator Name: ").strip().upper()  # Convert to uppercase for consistency
+        bio_para1 = input("Bio Paragraph 1: ").strip()
+        bio_para2 = input("Bio Paragraph 2: ").strip()
+        reach = input("Reach (e.g., 253k): ").strip()
+        monthly_viewership = input("Monthly Viewership (e.g., 98k, leave blank if none): ").strip()
+        viral_moment_title = input("Viral Moment Video Title: ").strip()
+        viral_moment_url = input("Viral Moment YouTube URL: ").strip()
+        viral_moment_views = input("Viral Moment Views (e.g., 956k): ").strip()
+        fanbase_style = input("Fanbase Style (e.g., Hyper-loyal, interactive): ").strip()
+        has_main_video = input("Does this creator have a main YouTube video? (y/n): ").strip().lower() == 'y'
+        main_video_url = ""
+        main_video_title = ""
+        if has_main_video:
+            main_video_url = input("Main Video YouTube URL: ").strip()
+            main_video_title = input("Main Video Title: ").strip()
+        featured_image = input("Featured Image Filename (e.g., creator-image.jpg): ").strip()
+        facebook_url = input("Facebook URL (leave blank if none): ").strip() or "https://www.facebook.com"
+        instagram_url = input("Instagram URL (leave blank if none): ").strip() or "https://www.instagram.com"
+        youtube_url = input("YouTube URL (leave blank if none): ").strip() or f"https://www.youtube.com/@{creator_name.lower()}"
+        tiktok_url = input("TikTok URL (leave blank if none): ").strip() or f"https://www.tiktok.com/@{creator_name.lower()}"
+        is_elite = input("Is this creator elite? (y/n): ").strip().lower() == 'y'
+
+        # Process YouTube URLs
+        main_video_embed_url = get_youtube_embed_url(main_video_url)
+        viral_moment_embed_url = get_youtube_embed_url(viral_moment_url)
+
+        # Define gradient style for elite creators
+        gradient_style = """
+            background: linear-gradient(45deg, #7c3aed, #10FF92, #7c3aed);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: gradientShift 3s ease-in-out infinite;
+        """ if is_elite else ""
+
+        # Define styles for creator name and reach
+        name_style = gradient_style if is_elite else "color: #10FF92;"
+        reach_style = gradient_style if is_elite else ""
+
+        # Generate main video section if applicable
+        main_video_section = ""
+        if has_main_video:
+            main_video_section = f"""
+                            <div style="position: relative; width: 100%; padding-bottom: 56.25%; height: 0; margin-bottom: 24px;">
+                                <iframe src="{main_video_embed_url}"
+                                    title="{main_video_title}"
+                                    frameborder="0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                    referrerpolicy="strict-origin-when-cross-origin"
+                                    allowfullscreen
+                                    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe>
+                            </div>
+    """
+
+        # Generate monthly viewership list item if provided
+        monthly_viewership_item = ""
+        if monthly_viewership:
+            monthly_viewership_item = f"""
+                            <li>
+                                Monthly Viewership
+                                <span>{monthly_viewership}</span>
+                            </li>
+    """
+
+        # HTML template with placeholders
+        html_template = f"""<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
-<title> TrueConext | APPLESITO </title>
+<title> TrueConext | {creator_name} </title>
 <!-- Stylesheets -->
 <link href="assets/css/bootstrap.css" rel="stylesheet">
 <link href="assets/css/style.css" rel="stylesheet">
@@ -19,11 +101,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
 
 <style>
-    @keyframes gradientShift {
-        0% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
-    }
+    @keyframes gradientShift {{
+        0% {{ background-position: 0% 50%; }}
+        50% {{ background-position: 100% 50%; }}
+        100% {{ background-position: 0% 50%; }}
+    }}
 </style>
 </head>
 
@@ -94,67 +176,48 @@
 				<!-- Column -->
 				<div class="column col-lg-6 col-md-12 col-sm-12">
 					<div class="single-work_image">
-
+{main_video_section}
 					</div>
 					<div class="single-work_image">
-						<img src="assets/images/resource/applesitopic.jpg" alt="APPLESITO" />
+						<img src="assets/images/resource/{featured_image}" alt="{creator_name}" />
 					</div>
 				</div>
 				<!-- Column -->
 				<div class="column col-lg-6 col-md-12 col-sm-12">
 					<div style="display: flex; align-items: center;">
-						<h2 class="single-work_title" style="margin-bottom:0; 
-            background: linear-gradient(45deg, #7c3aed, #10FF92, #7c3aed);
-            background-size: 200% 200%;
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            animation: gradientShift 3s ease-in-out infinite;
-        ">
-							APPLESITO
+						<h2 class="single-work_title" style="margin-bottom:0; {name_style}">
+							{creator_name}
 						</h2>
 						<ul class="single-work_socials" style="display: flex; list-style: none; margin-left: 15px; padding: 0; font-size: 14px;">
 							<li style="margin-right: 10px;">
-								<a href="https://kick.com/ApplesitoGG?fbclid=PAZXh0bgNhZW0CMTEAAafGYXAmDMDFWH9cc0Dr50KcD46qWP0uy7doB0aEN0fqvDel7f7RkZ-sQJgIxA_aem_2iKeXzBPWKOE38clLaAQ4g" target="_blank" rel="noopener">X <i class="fa-solid fa-arrow-right fa-fw"></i></a>
+								<a href="{facebook_url}" target="_blank" rel="noopener">X <i class="fa-solid fa-arrow-right fa-fw"></i></a>
 							</li>
 							<li style="margin-right: 10px;">
-								<a href="https://www.instagram.com/applesitogg/" target="_blank" rel="noopener">Instagram <i class="fa-solid fa-arrow-right fa-fw"></i></a>
+								<a href="{instagram_url}" target="_blank" rel="noopener">Instagram <i class="fa-solid fa-arrow-right fa-fw"></i></a>
 							</li>
 							<li style="margin-right: 10px;">
-								<a href="https://www.youtube.com/@applesito" target="_blank" rel="noopener">YouTube <i class="fa-solid fa-arrow-right fa-fw"></i></a>
+								<a href="{youtube_url}" target="_blank" rel="noopener">YouTube <i class="fa-solid fa-arrow-right fa-fw"></i></a>
 							</li>
 							<li>
-								<a href="https://www.tiktok.com/@applesitogg?lang=es" target="_blank" rel="noopener">TikTok <i class="fa-solid fa-arrow-right fa-fw"></i></a>
+								<a href="{tiktok_url}" target="_blank" rel="noopener">TikTok <i class="fa-solid fa-arrow-right fa-fw"></i></a>
 							</li>
 						</ul>
 					</div>
-					<p>A rising gaming & entertainment sensation in LATAM, JorlolG blends humor, gameplay, and viewer interaction across his channel of nearly 200K fans. He delivers top-tier visibility for your brand without sacrificing authenticity.</p>
-					<p></p>
+					<p>{bio_para1}</p>
+					<p>{bio_para2}</p>
 					<ul class="single-work_list">
 						<li>
 							REACH
-							<span style="
-            background: linear-gradient(45deg, #7c3aed, #10FF92, #7c3aed);
-            background-size: 200% 200%;
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            animation: gradientShift 3s ease-in-out infinite;
-        ">240K</span>
+							<span style="{reach_style}">{reach}</span>
 						</li>
-
-                            <li>
-                                Monthly Viewership
-                                <span>15K</span>
-                            </li>
-    
+{monthly_viewership_item}
 						<li>
 							Viral Moment
-							<a href="https://www.youtube.com/embed/73377676566" target="_blank" rel="noopener"><span style="color: #7c3aed;">"aña"</span></a><span> 1.9m</span>
+							<a href="{viral_moment_embed_url}" target="_blank" rel="noopener"><span style="color: #7c3aed;">{viral_moment_title}</span></a><span> {viral_moment_views}</span>
 						</li>					
 						<li>
 							Fanbase Style
-							<span>Hyper-loyal, interactive</span>
+							<span>{fanbase_style}</span>
 						</li>
 					</ul>
 				</div>
@@ -222,3 +285,26 @@
 <!--[if lt IE 9]><script src="js/respond.js"></script><![endif]-->
 </body>
 </html>
+"""
+
+        # Format the template with user inputs
+        html_content = html_template
+
+        # Generate output filename
+        output_filename = f"{creator_name.lower().replace(' ', '-')}-profile.html"
+        
+        # Save the HTML file
+        with open(output_filename, 'w', encoding='utf-8') as f:
+            f.write(html_content)
+        
+        print(f"HTML file generated: {output_filename}")
+        print(f"File saved in: {os.getcwd()}")
+
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
+        print("Please check your inputs and try again.")
+
+if __name__ == "__main__":
+    generate_creator_html()
+    if os.name == 'nt':  # For Windows
+        input("Press Enter to close the window...")
