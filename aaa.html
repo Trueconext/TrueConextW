@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>TrueConext</title>
+    <!-- Stylesheets -->
+    <link href="assets/css/bootstrap.css" rel="stylesheet">
+    <link href="assets/css/style.css" rel="stylesheet">
+    <link href="assets/css/responsive.css" rel="stylesheet">
+
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,600;1,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <link rel="shortcut icon" href="assets/images/favicon.png" type="image/x-icon">
+    <link rel="icon" href="assets/images/favicon.png" type="image/x-icon">
+
+    <!-- Responsive -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+</head>
+
+<body>
+<div class="page-wrapper image-layer" style="background-image:url(assets/images/background/4.jpg)">	
+    <!-- Main Header -->
+    <header class="main-header">
+        <!-- Header Lower -->
+        <div class="header-lower">
+            <div class="auto-container">
+                <div class="inner-container">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap">
+                        <div class="logo-box">
+                            <div class="logo"><a href="index.html"><img src="assets/images/logo.png" alt="" title=""></a></div>
+                        </div>
+                        <div class="nav-outer d-flex flex-wrap">
+                            <!-- Main Menu -->
+                            <nav class="main-menu navbar-expand-md">
+                                <div class="navbar-header">
+                                    <!-- Toggle Button -->    	
+                                    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                                        <span class="icon-bar"></span>
+                                        <span class="icon-bar"></span>
+                                        <span class="icon-bar"></span>
+                                    </button>
+                                </div>
+                                <div class="navbar-collapse collapse clearfix" id="navbarSupportedContent">
+                                    <ul class="navigation clearfix">
+                                        <li><a href="index.html">Home</a></li>
+                                        <li><a href="about.html">About</a></li>
+                                        <li><a href="Creators.html">Creators</a>
+                                            <ul>
+                                                <li><a href="work.html">work</a></li>
+                                                <li><a href="single-work.html">work detail</a></li>
+                                            </ul>
+                                        </li>
+                                        <li><a href="contact.html">Contact</a></li>
+                                    </ul>
+                                </div>
+                            </nav>
+                        </div>
+                        <!-- Mobile Navigation Toggler -->
+                        <div class="mobile-nav-toggler">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-menu-2" width="24" height="24" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                <path d="M4 6l16 0" />
+                                <path d="M4 12l16 0" />
+                                <path d="M4 18l16 0" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- End Header Lower -->
+        <!-- Mobile Menu -->
+        <div class="mobile-menu">
+            <div class="menu-backdrop"></div>
+            <div class="close-btn"><span class="icon fa-solid fa-xmark fa-fw"></span></div>
+            <nav class="menu-box">
+                <div class="nav-logo"><a href="index.html"><img src="assets/images/mobile-logo.png" alt="" title=""></a></div>
+                <div class="menu-outer"></div>
+            </nav>
+        </div>
+        <!-- End Mobile Menu -->
+    </header>
+    <!-- End Main Header -->
+
+    <!-- Banner Section -->
+    <section class="banner-one">
+        <div class="auto-container">
+            <div class="inner-container">
+                <h1 class="banner-one_title">A TRUE <br> CONNECTION</h1>
+                <h2 class="banner-one_subtitle">The agency that <br> actually haves your back</h2>
+                <div class="banner-one_text">Built on Trust. <br> Driven by Results.</div>
+            </div>
+        </div>
+    </section>
+    <!-- End Banner Section -->
+
+    <!-- Stats Section -->
+    <section class="stats-one" style="background-image:url(assets/images/background/3.jpg)">
+        <div class="auto-container">
+            <div class="inner-container">
+                <div class="counter-block_one" style="display: flex; justify-content: center; align-items: center; min-height: 200px;">
+                    <div class="counter-block_one-inner wow flipInX" data-wow-delay="0ms" data-wow-duration="1500ms">
+                        <div class="counter-block_one-counter" style="background: linear-gradient(45deg, #7c3aed, #10FF92, #7c3aed); background-size: 200% 200%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: gradientShift 3s ease-in-out infinite;">
+                            <span class="odometer" data-count="10809000"></span>+
+                        </div>
+                        <div class="counter-block_one-text" style="background: linear-gradient(45deg, #7c3aed, #10FF92, #7c3aed); background-size: 200% 200%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: gradientShift 3s ease-in-out infinite;">
+                            TrueConext Total Reach
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <style>
+            @keyframes gradientShift {
+                0% { background-position: 0% 50%; }
+                50% { background-position: 100% 50%; }
+                100% { background-position: 0% 50%; }
+            }
+            .counter-block_one {
+                width: 100%;
+                text-align: center;
+                padding: 20px;
+            }
+            .counter-block_one-inner {
+                display: inline-block;
+            }
+            .counter-block_one-counter {
+                font-size: 2.5rem;
+                line-height: 1.2;
+                margin-bottom: 10px;
+            }
+            .counter-block_one-text {
+                font-size: 1.2rem;
+                line-height: 1.5;
+            }
+            @media (max-width: 768px) {
+                .counter-block_one-counter {
+                    font-size: 2rem;
+                }
+                .counter-block_one-text {
+                    font-size: 1rem;
+                }
+            }
+            @media (max-width: 576px) {
+                .counter-block_one-counter {
+                    font-size: 1.5rem;
+                }
+                .counter-block_one-text {
+                    font-size: 0.9rem;
+                }
+            }
+        </style>
+    </section>
+    <!-- End Stats Section -->
+
+    <!-- Services Section -->
+    <section class="services-one">
+        <div class="auto-container">
+            <div class="sec-title centered">
+                <h2>Services</h2>
+            </div>
+            <div class="row clearfix">
+                <div class="service-block_one col-lg-3 col-md-6 col-sm-12">
+                    <div class="service-block_one-inner">
+                        <div class="service-block_one-icon"><img src="assets/images/icons/service-1.png" alt="" /></div>
+                        <h3>Brand Campaign Development</h3>
+                    </div>
+                </div>
+                <div class="service-block_one col-lg-3 col-md-6 col-sm-12">
+                    <div class="service-block_one-inner">
+                        <div class="service-block_one-icon"><img src="assets/images/icons/service-2.png" alt="" /></div>
+                        <h3>Influencer and Creator Management</h3>
+                    </div>
+                </div>
+                <div class="service-block_one col-lg-3 col-md-6 col-sm-12">
+                    <div class="service-block_one-inner">
+                        <div class="service-block_one-icon"><img src="assets/images/icons/service-3.png" alt="" /></div>
+                        <h3>Talent to Brand Matching</h3>
+                    </div>
+                </div>
+                <div class="service-block_one col-lg-3 col-md-6 col-sm-12">
+                    <div class="service-block_one-inner">
+                        <div class="service-block_one-icon"><img src="assets/images/icons/service-4.png" alt="" /></div>
+                        <h3>UGC & Influencer Posting</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- End Services Section -->
+
+    <!-- Team Section -->
+    <section class="team-one">
+        <div class="auto-container">
+            <div class="row clearfix">
+                <div class="team-block_one col-lg-4 col-md-6 col-sm-12">
+                    <div class="team-block_one-inner">
+                        <div class="team-block_one-image">
+                            <img src="assets/images/resource/team-1.jpg" alt="" />
+                            <div class="team-block_one-overlay">
+                                <div class="team-block_one-location">LATAM</div>
+                                <h3>VALEVZG</h3>
+                                <a href="valevzg-profile.html" class="theme-btn btn-style-one">View More</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="team-block_one col-lg-4 col-md-6 col-sm-12">
+                    <div class="team-block_one-inner">
+                        <div class="team-block_one-image">
+                            <img src="assets/images/resource/team-2.jpg" alt="" />
+                            <div class="team-block_one-overlay">
+                                <div class="team-block_one-location">LATAM</div>
+                                <h3>LOBOJZ</h3>
+                                <a href="lobojz-profile.html" class="theme-btn btn-style-one">View More</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="team-block_one col-lg-4 col-md-6 col-sm-12">
+                    <div class="team-block_one-inner">
+                        <div class="team-block_one-image">
+                            <img src="assets/images/resource/team-3.jpg" alt="" />
+                            <div class="team-block_one-overlay">
+                                <div class="team-block_one-location">LATAM</div>
+                                <h3>JORLOL</h3>
+                                <a href="jorlol-profile.html" class="theme-btn btn-style-one">View More</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="team-block_one col-lg-4 col-md-6 col-sm-12">
+                    <div class="team-block_one-inner">
+                        <div class="team-block_one-image">
+                            <img src="assets/images/resource/team-4.jpg" alt="" />
+                            <div class="team-block_one-overlay">
+                                <div class="team-block_one-location">LATAM</div>
+                                <h3>DRAX</h3>
+                                <a href="drax-profile.html" class="theme-btn btn-style-one">View More</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="team-block_one col-lg-4 col-md-6 col-sm-12">
+                    <div class="team-block_one-inner">
+                        <div class="team-block_one-image">
+                            <img src="assets/images/resource/team-5.jpg" alt="" />
+                            <div class="team-block_one-overlay">
+                                <div class="team-block_one-location">LATAM</div>
+                                <h3>APPLESITO</h3>
+                                <a href="applesito-profile.html" class="theme-btn btn-style-one">View More</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="team-block_one col-lg-4 col-md-6 col-sm-12">
+                    <div class="team-block_one-inner">
+                        <div class="team-block_one-image">
+                            <img src="assets/images/resource/team-6.jpg" alt="" />
+                            <div class="team-block_one-overlay">
+                                <div class="team-block_one-location">LATAM</div>
+                                <h3>HISOKA</h3>
+                                <a href="hisoka-profile.html" class="theme-btn btn-style-one">View More</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- End Team Section -->
+
+    <!-- Clients Section -->
+    <section class="clients-one">
+        <div class="auto-container">
+            <div class="sec-title centered">
+                <h2>Our Clients</h2>
+            </div>
+            <div class="swiper-container client-swiper">
+                <div class="swiper-wrapper">
+                    <div class="swiper-slide">
+                        <div class="client-block_one">
+                            <div class="client-block_one-inner">
+                                <div class="client-block_one-image">
+                                    <img src="assets/images/clients/client-1.png" alt="" />
+                                    <h3>Call of Duty: Mobile</h3>
+                                    <div class="client-block_one-designation">Marketing Manager, Activision</div>
+                                    <div class="client-block_one-count">01</div>
+                                </div>
+                                <div class="client-block_one-text">"A fast, professional team that delivers exactly what we need—on time, and with measurable results. We trust them with every brief."</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="swiper-slide">
+                        <div class="client-block_one">
+                            <div class="client-block_one-inner">
+                                <div class="client-block_one-image">
+                                    <img src="assets/images/clients/client-2.png" alt="" />
+                                    <h3>Ubisoft</h3>
+                                    <div class="client-block_one-designation">Partnerships Lead, Ubisoft</div>
+                                    <div class="client-block_one-count">02</div>
+                                </div>
+                                <div class="client-block_one-text">"Their understanding of creator-brand dynamics is unmatched. They don’t just pitch creators—they build long-term partnerships that convert."</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="swiper-slide">
+                        <div class="client-block_one">
+                            <div class="client-block_one-inner">
+                                <div class="client-block_one-image">
+                                    <img src="assets/images/clients/client-3.png" alt="" />
+                                    <h3>Razer</h3>
+                                    <div class="client-block_one-designation">Campaign Director, Razer</div>
+                                    <div class="client-block_one-count">03</div>
+                                </div>
+                                <div class="client-block_one-text">"Trueconext brings clarity, consistency, and creative strategy to every campaign. Working with them is effortless—and effective"</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- End Clients Section -->
+
+    <!-- Stats Two Section -->
+    <section class="stats-two">
+        <div class="auto-container">
+            <div class="row clearfix">
+                <div class="counter-block_two col-lg-2 col-md-6 col-sm-12">
+                    <div class="counter-block_two-inner">
+                        <div class="counter-block_two-counter"><span class="odometer" data-count="230"></span>+</div>
+                        <div class="counter-block_two-text">finished projects</div>
+                    </div>
+                </div>
+                <div class="counter-block_two col-lg-2 col-md-6 col-sm-12">
+                    <div class="counter-block_two-inner">
+                        <div class="counter-block_two-counter"><span class="odometer" data-count="50"></span>+</div>
+                        <div class="counter-block_two-text">team members</div>
+                    </div>
+                </div>
+                <div class="counter-block_two col-lg-2 col-md-6 col-sm-12">
+                    <div class="counter-block_two-inner">
+                        <div class="counter-block_two-counter"><span class="odometer" data-count="120"></span>+</div>
+                        <div class="counter-block_two-text">happy customers</div>
+                    </div>
+                </div>
+                <div class="counter-block_two col-lg-2 col-md-6 col-sm-12">
+                    <div class="counter-block_two-inner">
+                        <div class="counter-block_two-counter"><span class="odometer" data-count="80"></span>+</div>
+                        <div class="counter-block_two-text">loyal partners</div>
+                    </div>
+                </div>
+                <div class="counter-block_two col-lg-2 col-md-6 col-sm-12">
+                    <div class="counter-block_two-inner">
+                        <div class="counter-block_two-counter"><span class="odometer" data-count="1000"></span>+</div>
+                        <div class="counter-block_two-text">coffee drinks</div>
+                    </div>
+                </div>
+                <div class="counter-block_two col-lg-2 col-md-6 col-sm-12">
+                    <div class="counter-block_two-inner">
+                        <a href="contact.html" class="theme-btn btn-style-one">contact</a>
+                        <div class="counter-block_two-text">get a quote for your project</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- End Stats Two Section -->
+
+    <!-- Main Footer -->
+    <footer class="main-footer">
+        <div class="auto-container">
+            <div class="widgets-section">
+                <div class="row clearfix">
+                    <div class="footer-column col-lg-8 col-md-12 col-sm-12">
+                        <div class="footer-text">We build honest connections <br> between brands and creators. <br> No shortcuts. No empty promises.</div>
+                        <h2>Interested in working with us? <a href="mailto:admin@trueconext.com">admin@trueconext.com</a></h2>
+                        <ul class="footer_socials">
+                            <li><a href="https://www.facebook.com/profile.php?id=61577477713327" target="_blank" rel="noopener">Facebook <i class="fa-solid fa-arrow-right fa-fw"></i></a></li>
+                            <li><a href="https://www.instagram.com/trueconext" target="_blank" rel="noopener">Instagram <i class="fa-solid fa-arrow-right fa-fw"></i></a></li>
+                            <li><a href="https://x.com/TrueConext" target="_blank" rel="noopener">X <i class="fa-solid fa-arrow-right fa-fw"></i></a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column col-lg-4 col-md-12 col-sm-12">
+                        <ul class="footer_navs">
+                            <li><a href="index.html">Home <i class="fa-solid fa-arrow-right fa-fw"></i></a></li>
+                            <li><a href="about.html">About <i class="fa-solid fa-arrow-right fa-fw"></i></a></li>
+                            <li><a href="Creators.html">Creators <i class="fa-solid fa-arrow-right fa-fw"></i></a></li>
+                            <li><a href="contact.html">Contact <i class="fa-solid fa-arrow-right fa-fw"></i></a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="auto-container">
+                <div class="d-flex justify-content-between align-items-center flex-wrap">
+                    <div class="footer_copyright">© 2025 Trueconext - All Rights Reserved</div>
+                    <a class="backtop down-box scroll-to-target" data-target=".page-wrapper">
+                        <i class="fa-solid fa-arrow-up"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <!-- End Main Footer -->
+
+</div>
+<!-- End PageWrapper -->
+
+<script src="assets/js/jquery.js"></script>
+<script src="assets/js/popper.min.js"></script>
+<script src="assets/js/bootstrap.min.js"></script>
+<script src="assets/js/appear.js"></script>
+<script src="assets/js/wow.js"></script>
+<script src="assets/js/swiper.min.js"></script>
+<script src="assets/js/odometer.js"></script>
+<script src="assets/js/gsap.min.js"></script>
+<script src="assets/js/SplitText.min.js"></script>
+<script src="assets/js/ScrollTrigger.min.js"></script>
+<script src="assets/js/ScrollToPlugin.min.js"></script>
+<script src="assets/js/ScrollSmoother.min.js"></script>
+<script src="assets/js/script.js"></script>
+<!--[if lt IE 9]><script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.js"></script><![endif]-->
+<!--[if lt IE 9]><script src="js/respond.js"></script><![endif]-->
+</body>
+</html>
