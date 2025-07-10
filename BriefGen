@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Brief Generator</title>
+  <style>
+    body { font-family: 'Work Sans', sans-serif; background-color: #1a1a1a; margin: 0; padding: 20px; color: #e0e0e0; }
+    .container { max-width: 900px; margin: 0 auto; background: #2d2d2d; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.3); }
+    h1 { color: #10ff92; }
+    .form-group { margin-bottom: 15px; }
+    label { font-weight: bold; display: block; margin-bottom: 5px; color: #10ff92; }
+    input, textarea, select { width: 100%; padding: 8px; border: 1px solid #444; border-radius: 4px; background: #3b3b3b; color: #e0e0e0; }
+    .highlight-btn { background: #10ff92; color: #1a1a1a; padding: 2px 6px; border: none; cursor: pointer; }
+    .section { margin-top: 20px; }
+    .preview { margin-top: 20px; background: #3b3b3b; padding: 15px; border-radius: 8px; }
+    .download-btn, .upload-btn { background: #7822ff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; display: inline-block; margin-top: 10px; }
+    .remove-btn { background: #ff4d4d; color: white; border: none; padding: 5px 10px; cursor: pointer; }
+    .add-block { background: #10ff92; color: #1a1a1a; border: none; padding: 5px 10px; cursor: pointer; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@octokit/rest@19.0.7/dist/octokit-rest.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Brief Generator</h1>
+    <div class="form-group">
+      <label for="language">Language / Idioma:</label>
+      <select id="language" onchange="setLanguage()">
+        <option value="en">English</option>
+        <option value="es">Español</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="creatorName">Creator Name *:</label>
+      <input type="text" id="creatorName" placeholder="e.g., nomoney.codm" required>
+    </div>
+
+    <div class="form-group">
+      <label for="campaignName">Campaign Name:</label>
+      <input type="text" id="campaignName" placeholder="e.g., True Conext">
+    </div>
+
+    <div class="form-group">
+      <label for="currency">Currency / Moneda:</label>
+      <select id="currency">
+        <option value="USD">USD ($)</option>
+        <option value="EUR">EUR (€)</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="payment">Payment / Pago:</label>
+      <input type="number" id="payment" placeholder="e.g., 150">
+    </div>
+
+    <div class="form-group">
+      <label for="draftDate">Draft Delivery Date (DD/MM/YYYY) / Fecha de Entrega del Borrador (DD/MM/YYYY):</label>
+      <input type="text" id="draftDate" placeholder="e.g., 15/07/2025">
+    </div>
+
+    <div class="form-group">
+      <label for="postingDate">Posting Date (DD/MM/YYYY) / Fecha de Publicación (DD/MM/YYYY):</label>
+      <input type="text" id="postingDate" placeholder="e.g., 20/07/2025">
+    </div>
+
+    <div class="form-group">
+      <label>Deliverables / Entregables:</label>
+      <div id="deliverables">
+        <input type="text" class="deliverable" placeholder="e.g., 1 Video TikTok" style="margin-bottom: 5px;">
+      </div>
+      <button onclick="addDeliverable()" class="add-block">Add Deliverable / Agregar Entregable</button>
+    </div>
+
+    <div class="form-group">
+      <label for="hashtags">Hashtags Obligatorios (suggest #):</label>
+      <input type="text" id="hashtags" placeholder="e.g., #lagofast, #ad, TrueCX">
+    </div>
+
+    <div class="form-group">
+      <label>Assets (Add Link) / Activos (Agregar Enlace):</label>
+      <div id="assets">
+        <input type="url" class="asset" placeholder="e.g., https://drive.google.com/..." style="margin-bottom: 5px;">
+      </div>
+      <button onclick="addAsset()" class="add-block">Add Asset / Agregar Activo</button>
+    </div>
+
+    <div class="form-group">
+      <label>Description Subsections / Subsecciones de Descripción:</label>
+      <div id="description">
+        <textarea id="descSection1" placeholder="e.g., Mandatory text..." style="margin-bottom: 5px; height: 100px;"></textarea>
+      </div>
+      <button onclick="addDescriptionSection()" class="add-block">Add Subsection / Agregar Subsección</button>
+    </div>
+
+    <div class="form-group">
+      <label for="metrics">Entrega de Métricas (Custom Text):</label>
+      <textarea id="metrics" placeholder="e.g., Send metrics within 7 days..." style="height: 100px;"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="talkingPoints">Key Talking Points (Format as List) / Puntos Clave (Formato como Lista):</label>
+      <textarea id="talkingPoints" placeholder="e.g., 1. Show ping before and after..." style="height: 100px;"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>Any Additional Block? / ¿Algún Bloque Adicional?</label>
+      <button onclick="addCustomBlock()" class="add-block">Add Custom Block / Agregar Bloque Personalizado</button>
+      <div id="customBlocks"></div>
+    </div>
+
+    <button onclick="generatePreview()" class="upload-btn">Preview / Vista Previa</button>
+    <button onclick="uploadToGitHub()" class="upload-btn" style="margin-left: 10px;">Upload to GitHub / Subir a GitHub</button>
+    <a id="downloadLink" class="download-btn" style="display: none;">Download / Descargar</a>
+
+    <div class="preview" id="preview"></div>
+  </div>
+
+  <script>
+    let language = 'en';
+    let pat = null;
+
+    const translations = {
+      en: {
+        creatorName: "Creator Name *",
+        campaignName: "Campaign Name",
+        currency: "Currency",
+        payment: "Payment",
+        draftDate: "Draft Delivery Date (DD/MM/YYYY)",
+        postingDate: "Posting Date (DD/MM/YYYY)",
+        deliverables: "Deliverables",
+        hashtags: "Hashtags Obligatorios (suggest #)",
+        assets: "Assets (Add Link)",
+        description: "Description Subsections",
+        metrics: "Entrega de Métricas (Custom Text)",
+        talkingPoints: "Key Talking Points (Format as List)",
+        additionalBlock: "Any Additional Block?",
+        addDeliverable: "Add Deliverable",
+        addAsset: "Add Asset",
+        addSubsection: "Add Subsection",
+        addCustomBlock: "Add Custom Block",
+        preview: "Preview",
+        upload: "Upload to GitHub",
+        download: "Download",
+        success: "Upload successful! View at: ",
+        error: "Error uploading: "
+      },
+      es: {
+        creatorName: "Nombre del Creador *",
+        campaignName: "Nombre de la Campaña",
+        currency: "Moneda",
+        payment: "Pago",
+        draftDate: "Fecha de Entrega del Borrador (DD/MM/YYYY)",
+        postingDate: "Fecha de Publicación (DD/MM/YYYY)",
+        deliverables: "Entregables",
+        hashtags: "Hashtags Obligatorios (sugiere #)",
+        assets: "Activos (Agregar Enlace)",
+        description: "Subsecciones de Descripción",
+        metrics: "Entrega de Métricas (Texto Personalizado)",
+        talkingPoints: "Puntos Clave (Formato como Lista)",
+        additionalBlock: "¿Algún Bloque Adicional?",
+        addDeliverable: "Agregar Entregable",
+        addAsset: "Agregar Activo",
+        addSubsection: "Agregar Subsección",
+        addCustomBlock: "Agregar Bloque Personalizado",
+        preview: "Vista Previa",
+        upload: "Subir a GitHub",
+        download: "Descargar",
+        success: "¡Subida exitosa! Ver en: ",
+        error: "Error al subir: "
+      }
+    };
+
+    function setLanguage() {
+      language = document.getElementById('language').value;
+      updateLabels();
+      generatePreview(); // Update preview with new language
+    }
+
+    function updateLabels() {
+      const labels = document.getElementsByTagName('label');
+      for (let label of labels) {
+        const forId = label.getAttribute('for');
+        if (translations[language][forId]) {
+          label.textContent = translations[language][forId];
+        }
+      }
+      document.querySelectorAll('button').forEach(btn => {
+        if (btn.textContent.includes('Add Deliverable')) btn.textContent = translations[language].addDeliverable;
+        if (btn.textContent.includes('Add Asset')) btn.textContent = translations[language].addAsset;
+        if (btn.textContent.includes('Add Subsection')) btn.textContent = translations[language].addSubsection;
+        if (btn.textContent.includes('Add Custom Block')) btn.textContent = translations[language].addCustomBlock;
+        if (btn.textContent.includes('Preview')) btn.textContent = translations[language].preview;
+        if (btn.textContent.includes('Upload to GitHub')) btn.textContent = translations[language].upload;
+        if (btn.textContent.includes('Download')) document.getElementById('downloadLink').textContent = translations[language].download;
+      });
+    }
+
+    function addDeliverable() {
+      const div = document.getElementById('deliverables');
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'deliverable';
+      input.placeholder = 'e.g., 1 Video TikTok';
+      input.style.marginBottom = '5px';
+      div.appendChild(input);
+    }
+
+    function addAsset() {
+      const div = document.getElementById('assets');
+      const input = document.createElement('input');
+      input.type = 'url';
+      input.className = 'asset';
+      input.placeholder = 'e.g., https://drive.google.com/...';
+      input.style.marginBottom = '5px';
+      div.appendChild(input);
+    }
+
+    function addDescriptionSection() {
+      const div = document.getElementById('description');
+      const textarea = document.createElement('textarea');
+      textarea.id = `descSection${document.querySelectorAll('#description textarea').length + 1}`;
+      textarea.placeholder = 'e.g., Mandatory text...';
+      textarea.style.marginBottom = '5px';
+      textarea.style.height = '100px';
+      div.appendChild(textarea);
+    }
+
+    function addCustomBlock() {
+      const div = document.getElementById('customBlocks');
+      const blockDiv = document.createElement('div');
+      blockDiv.className = 'section';
+      blockDiv.innerHTML = `
+        <input type="text" class="custom-title" placeholder="Title" style="margin-bottom: 5px;">
+        <textarea class="custom-content" placeholder="Content" style="margin-bottom: 5px; height: 100px;"></textarea>
+        <button onclick="this.parentElement.remove()" class="remove-btn">Remove / Eliminar</button>
+      `;
+      div.appendChild(blockDiv);
+    }
+
+    function highlightText(event) {
+      const textarea = event.target;
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      if (start !== end) {
+        const text = textarea.value;
+        const selected = text.substring(start, end);
+        const highlighted = `<span class="highlight">${selected}</span>`;
+        textarea.value = text.substring(0, start) + highlighted + text.substring(end);
+        textarea.setSelectionRange(start + highlighted.length - selected.length, start + highlighted.length - selected.length);
+      }
+    }
+
+    document.querySelectorAll('textarea').forEach(textarea => {
+      textarea.addEventListener('mouseup', highlightText);
+    });
+
+    function generatePreview() {
+      const creatorName = document.getElementById('creatorName').value;
+      const campaignName = document.getElementById('campaignName').value || 'Untitled Campaign';
+      const currency = document.getElementById('currency').value;
+      const payment = document.getElementById('payment').value;
+      const draftDate = document.getElementById('draftDate').value;
+      const postingDate = document.getElementById('postingDate').value;
+      const deliverables = Array.from(document.querySelectorAll('.deliverable')).map(d => d.value).filter(v => v);
+      const hashtags = document.getElementById('hashtags').value;
+      const assets = Array.from(document.querySelectorAll('.asset')).map(a => a.value).filter(v => v);
+      const descSections = Array.from(document.querySelectorAll('#description textarea')).map(t => t.value).filter(v => v);
+      const metrics = document.getElementById('metrics').value;
+      const talkingPoints = document.getElementById('talkingPoints').value;
+      const customBlocks = Array.from(document.querySelectorAll('.custom-title')).map((title, i) => ({
+        title: title.value,
+        content: title.nextElementSibling.value
+      })).filter(b => b.title || b.content);
+
+      const sanitizedCreator = creatorName.replace(/[^a-zA-Z0-9]/g, '-');
+      const sanitizedCampaign = campaignName.replace(/[^a-zA-Z0-9]/g, '-');
+      const filename = `${sanitizedCreator}-${sanitizedCampaign}.html`;
+
+      let html = `
+<!DOCTYPE html>
+<html lang="${language}">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Brief - ${creatorName} | ${campaignName}</title>
+  <style>
+    body { margin: 0; font-family: 'Work Sans', sans-serif; background-color: #1a1a1a; color: #e0e0e0; line-height: 1.6; }
+    header img { width: 100%; display: block; margin-bottom: -4px; }
+    .container { max-width: 900px; margin: 0 auto; padding: 20px; }
+    h1, h2 { color: #10ff92; margin-top: 40px; font-weight: bold; }
+    .section { background-color: #2d2d2d; border-left: 5px solid #7822ff; border-radius: 12px; padding: 20px; margin-top: 20px; }
+    a { color: #10ff92; word-break: break-word; }
+    .download-btn { background-color: #7822ff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin-top: 10px; }
+    .important { color: #ff4d4d; font-weight: bold; }
+    .highlight { background-color: #10ff92; color: #1a1a1a; font-weight: bold; padding: 2px 6px; border-radius: 4px; }
+    footer { text-align: center; padding: 40px 10px 20px; font-size: 0.9rem; color: #999; }
+  </style>
+</head>
+<body>
+  <header><img src="https://trueconext.com/assets/TheBriefs.png" alt="Banner True Conext"></header>
+  <div class="container">
+    <h1>Brief de campaña – ${creatorName} | ${campaignName}</h1>
+    <div class="section">
+      <h2>${language === 'es' ? 'Datos de campaña' : 'Campaign Details'}</h2>
+      <p><strong>${language === 'es' ? 'Pago' : 'Payment'}:</strong> ${currency === 'USD' ? '$' : '€'}${payment}</p>
+      <p><strong>${language === 'es' ? 'Duración' : 'Duration'}:</strong> ${draftDate ? `${language === 'es' ? 'Borrador' : 'Draft'}: ${draftDate}, ${language === 'es' ? 'Publicación' : 'Posting'}: ${postingDate}` : 'N/A'}</p>
+    </div>
+    <div class="section">
+      <h2>${language === 'es' ? 'Entregables' : 'Deliverables'}</h2>
+      <ul>${deliverables.map(d => `<li>${d}</li>`).join('')}</ul>
+    </div>
+    ${assets.length ? `<div class="section"><h2>${language === 'es' ? 'Botón de descarga de logos' : 'Download Logos Button'}</h2>${assets.map(a => `<a href="${a}" class="download-btn">Descargar ${a.split('/').pop()}</a>`).join('')}</div>` : ''}
+    ${hashtags ? `<div class="section"><h2>${language === 'es' ? 'Hashtags obligatorios' : 'Mandatory Hashtags'}</h2><p>${hashtags}</p></div>` : ''}
+    <div class="section">
+      <h2>${language === 'es' ? 'Texto obligatorio para descripción/comentario' : 'Mandatory Description/Comment Text'}</h2>
+      ${descSections.map(s => `<p>${s}</p>`).join('')}
+    </div>
+    ${metrics ? `<div class="section"><h2>${language === 'es' ? 'Entrega de métricas' : 'Metrics Delivery'}</h2><p>${metrics}</p></div>` : ''}
+    ${talkingPoints ? `<div class="section"><h2>${language === 'es' ? 'Instrucciones clave' : 'Key Instructions'}</h2><p>${talkingPoints}</p></div>` : ''}
+    ${customBlocks.map(b => `<div class="section"><h2>${b.title}</h2><p>${b.content}</p></div>`).join('')}
+    <footer>© 2025 True Conext. ${language === 'es' ? 'Todos los derechos reservados' : 'All rights reserved'}.<br /><a href="#">${language === 'es' ? 'Política de privacidad' : 'Privacy Policy'}</a></footer>
+  </div>
+</body>
+</html>`;
+
+      document.getElementById('preview').innerHTML = html;
+      const blob = new Blob([html], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      document.getElementById('downloadLink').href = url;
+      document.getElementById('downloadLink').download = filename;
+      document.getElementById('downloadLink').style.display = 'inline-block';
+    }
+
+    async function uploadToGitHub() {
+      if (!pat) {
+        pat = prompt('Enter your GitHub Personal Access Token (PAT):');
+        if (!pat) return alert(translations[language].error + 'No token provided');
+      }
+
+      const creatorName = document.getElementById('creatorName').value;
+      const campaignName = document.getElementById('campaignName').value || 'Untitled Campaign';
+      const sanitizedCreator = creatorName.replace(/[^a-zA-Z0-9]/g, '-');
+      const sanitizedCampaign = campaignName.replace(/[^a-zA-Z0-9]/g, '-');
+      const filename = `${sanitizedCreator}-${sanitizedCampaign}.html`;
+
+      const octokit = new Octokit.Octokit({ auth: pat });
+      const repo = 'Trueconext/TrueConextW';
+      const branch = 'main';
+      const path = filename;
+
+      try {
+        const { data: sha } = await octokit.repos.getContent({
+          owner: 'Trueconext',
+          repo: 'TrueConextW',
+          path,
+          ref: branch
+        }).catch(() => ({ data: { sha: null } }));
+
+        const content = btoa(unescape(encodeURIComponent(document.getElementById('preview').innerHTML)));
+        await octokit.repos.createOrUpdateFileContents({
+          owner: 'Trueconext',
+          repo: 'TrueConextW',
+          path,
+          message: `Add brief: ${filename}`,
+          content,
+          sha: sha?.sha,
+          branch
+        });
+
+        const link = `https://trueconext.github.io/TrueConextW/${filename}`;
+        window.open(link, '_blank'); // Open new tab with the link
+        alert(`${translations[language].success}${link}`);
+      } catch (error) {
+        console.error(error);
+        alert(`${translations[language].error}${error.message}`);
+      }
+    }
+
+    // Initial label update
+    updateLabels();
+    document.querySelectorAll('textarea').forEach(textarea => {
+      textarea.addEventListener('mouseup', highlightText);
+    });
+  </script>
+</body>
+</html>
