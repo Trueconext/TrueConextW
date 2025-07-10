@@ -27,27 +27,42 @@
     a.privacy-link:hover { color: #999; }
   </style>
   <script>
-    // Dynamic loading with fallback
     let octokitLoaded = false;
     let md5Loaded = false;
 
-    function loadScript(src, onLoad, onError) {
+    function loadScript(src, onLoad, onError, retries = 2) {
       const script = document.createElement('script');
       script.src = src;
       script.onload = onLoad;
-      script.onerror = onError;
+      script.onerror = () => {
+        if (retries > 0) {
+          console.warn(`Retrying ${src}, attempts left: ${retries}`);
+          loadScript(src, onLoad, onError, retries - 1);
+        } else {
+          onError();
+          if (src.includes('octokit')) {
+            const localPath = prompt('CDN failed to load Octokit. Please provide a local path to octokit-rest.min.js (e.g., /path/to/octokit-rest.min.js) or press Cancel to skip.');
+            if (localPath) {
+              script.src = localPath;
+              document.head.appendChild(script);
+            } else {
+              alert('GitHub upload disabled due to library load failure. Please reload your network or provide a local file.');
+            }
+          }
+        }
+      };
       document.head.appendChild(script);
     }
 
     loadScript('https://cdn.jsdelivr.net/npm/@octokit/rest@19.0.7/dist/octokit-rest.min.js', 
       () => { octokitLoaded = true; console.log('Octokit loaded successfully'); },
-      () => { console.error('Failed to load Octokit, trying fallback'); loadScript('https://unpkg.com/@octokit/rest@19.0.7/dist/octokit-rest.min.js', 
+      () => { console.error('Primary Octokit load failed, trying fallback'); loadScript('https://unpkg.com/@octokit/rest@19.0.7/dist/octokit-rest.min.js', 
         () => { octokitLoaded = true; console.log('Octokit loaded from fallback'); }, 
-        () => { console.error('All Octokit loads failed'); alert('GitHub library failed to load. Please reload or check your network.'); }); });
+        () => { console.error('All Octokit loads failed'); }); });
 
     loadScript('https://cdn.jsdelivr.net/npm/md5@2.3.0/dist/md5.min.js', 
       () => { md5Loaded = true; console.log('MD5 loaded successfully'); },
-      () => { console.error('Failed to load MD5, trying fallback'); loadScript('https://unpkg.com/md5@2.3.0/dist/md5.min.js', 
+      () => { console.error('Primary MD5 load failed, trying fallback'); loadScript('https://unpkg.com/md5@2.3.0/dist/md5.min.js', 
         () => { md5Loaded = true; console.log('MD5 loaded from fallback'); }, 
         () => { console.error('All MD5 loads failed'); alert('Password hashing failed to load. Please reload or check your network.'); }); });
 
@@ -292,7 +307,7 @@
     async function uploadToGitHub() {
       if (!isAuthenticated) return;
       if (!octokitLoaded) {
-        alert('GitHub upload system is loading. Please wait and try again.');
+        alert('GitHub library failed to load. Please reload your network or provide a local Octokit file.');
         return;
       }
       console.log('Starting upload process at', new Date().toISOString());
@@ -342,5 +357,109 @@
       }
     }
   </script>
+</head>
+<body>
+  <div class="login-container" id="loginContainer">
+    <h2>Login</h2>
+    <input type="text" id="username" placeholder="Username" />
+    <input type="password" id="password" placeholder="Password" />
+    <button onclick="checkLogin()">Submit</button>
+  </div>
+  <div class="container" id="briefContainer">
+    <header><img src="https://trueconext.com/assets/BRIEFGENBANNER.png" alt="Banner True Conext"></header>
+    <h1>Brief Generator</h1>
+    <div class="form-group">
+      <label for="language">Language / Idioma:</label>
+      <select id="language" onchange="setLanguage()">
+        <option value="en">English</option>
+        <option value="es">Español</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="creatorName">Creator Name *:</label>
+      <input type="text" id="creatorName" placeholder="e.g., nomoney.codm" required>
+    </div>
+
+    <div class="form-group">
+      <label for="campaignName">Campaign Name:</label>
+      <input type="text" id="campaignName" placeholder="e.g., True Conext">
+    </div>
+
+    <div class="form-group">
+      <label for="currency">Currency / Moneda:</label>
+      <select id="currency">
+        <option value="USD">USD ($)</option>
+        <option value="EUR">EUR (€)</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="payment">Payment / Pago:</label>
+      <input type="number" id="payment" placeholder="e.g., 150">
+    </div>
+
+    <div class="form-group">
+      <label for="draftDate">Draft Delivery Date (DD/MM/YYYY) / Fecha de Entrega del Borrador (DD/MM/YYYY):</label>
+      <input type="text" id="draftDate" placeholder="e.g., 15/07/2025">
+    </div>
+
+    <div class="form-group">
+      <label for="postingDate">Posting Date (DD/MM/YYYY) / Fecha de Publicación (DD/MM/YYYY):</label>
+      <input type="text" id="postingDate" placeholder="e.g., 20/07/2025">
+    </div>
+
+    <div class="form-group">
+      <label>Deliverables / Entregables:</label>
+      <div id="deliverables">
+        <input type="text" class="deliverable" placeholder="e.g., 1 Video TikTok" style="margin-bottom: 5px;">
+      </div>
+      <button onclick="addDeliverable()" class="add-block">Add Deliverable / Agregar Entregable</button>
+    </div>
+
+    <div class="form-group">
+      <label for="hashtags">Hashtags Obligatorios (suggest #):</label>
+      <input type="text" id="hashtags" placeholder="e.g., #lagofast, #ad, #TrueCX">
+    </div>
+
+    <div class="form-group">
+      <label>Assets (Add Link) / Activos (Agregar Enlace):</label>
+      <div id="assets">
+        <input type="url" class="asset" placeholder="e.g., https://drive.google.com/..." style="margin-bottom: 5px;">
+      </div>
+      <button onclick="addAsset()" class="add-block">Add Asset / Agregar Activo</button>
+    </div>
+
+    <div class="form-group">
+      <label>Description Subsections / Subsecciones de Descripción:</label>
+      <div id="description">
+        <textarea id="descSection1" placeholder="e.g., Mandatory text..." style="margin-bottom: 5px; height: 100px;"></textarea>
+      </div>
+      <button onclick="addDescriptionSection()" class="add-block">Add Subsection / Agregar Subsección</button>
+    </div>
+
+    <div class="form-group">
+      <label for="metrics">Entrega de Métricas (Custom Text):</label>
+      <textarea id="metrics" placeholder="e.g., Send metrics within 7 days..." style="height: 100px;"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="talkingPoints">Key Talking Points (Format as List) / Puntos Clave (Formato como Lista):</label>
+      <textarea id="talkingPoints" placeholder="e.g., 1. Show ping before and after..." style="height: 100px;"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>Any Additional Block? / ¿Algún Bloque Adicional?</label>
+      <button onclick="addCustomBlock()" class="add-block">Add Custom Block / Agregar Bloque Personalizado</button>
+      <div id="customBlocks"></div>
+    </div>
+
+    <button onclick="generatePreview()" class="upload-btn">Preview / Vista Previa</button>
+    <button onclick="uploadToGitHub()" class="upload-btn" style="margin-left: 10px;">Upload to GitHub / Subir a GitHub</button>
+    <a id="downloadLink" class="download-btn" style="display: none;">Download / Descargar</a>
+
+    <div class="preview" id="preview"></div>
+    <div class="privacy-link"><a href="https://trueconext.com/Privacy.html" class="privacy-link">Privacy Policy</a></div>
+  </div>
 </body>
 </html>
