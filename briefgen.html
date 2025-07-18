@@ -1,354 +1,342 @@
-<!DOCTYPE html>
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Brief Generator</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Campaign Brief Generator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { font-family: 'Work Sans', sans-serif; background-color: #1a1a1a; margin: 0; padding: 20px; color: #e0e0e0; }
-    .container { max-width: 900px; margin: 0 auto; background: #2d2d2d; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.3); }
-    h1 { color: #10ff92; }
-    .form-group { margin-bottom: 15px; }
-    label { font-weight: bold; display: block; margin-bottom: 5px; color: #10ff92; }
-    input, textarea, select { width: 100%; padding: 8px; border: 1px solid #444; border-radius: 4px; background: #3b3b3b; color: #e0e0e0; }
-    .highlight-btn { background: #10ff92; color: #1a1a1a; padding: 2px 6px; border: none; cursor: pointer; }
-    .section { margin-top: 20px; }
-    .preview { margin-top: 20px; background: #3b3b3b; padding: 15px; border-radius: 8px; }
-    .download-btn { background: #7822ff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; display: inline-block; margin-top: 10px; }
-    .remove-btn { background: #ff4d4d; color: white; border: none; padding: 5px 10px; cursor: pointer; }
-    .add-block { background: #10ff92; color: #1a1a1a; border: none; padding: 5px 10px; cursor: pointer; }
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #232528;
+      color: #ffffff;
+    }
+    .preview-container {
+      border: 1px solid #10ff92;
+      padding: 20px;
+      background: #2a2c30;
+      border-radius: 8px;
+    }
+    .generated-html {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    a {
+      color: #10ff92;
+      text-decoration: underline;
+    }
+    .download-btn {
+      background: #10ff92;
+      color: #232528;
+      padding: 8px 16px;
+      border-radius: 4px;
+      text-decoration: none;
+    }
+    input, select, textarea {
+      background: #2a2c30;
+      color: #ffffff;
+      border: 1px solid #10ff92;
+      border-radius: 4px;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #7822ff;
+      box-shadow: 0 0 5px rgba(120, 34, 255, 0.5);
+    }
+    img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 4px;
+    }
   </style>
 </head>
-<body>
-  <div class="container">
-    <h1>Brief Generator</h1>
-    <div class="form-group">
-      <label for="language">Language / Idioma:</label>
-      <select id="language" onchange="setLanguage()">
-        <option value="en">English</option>
-        <option value="es">Español</option>
+<body class="p-4">
+  <div class="max-w-4xl mx-auto">
+    <img src="https://trueconext.com/assets/TheBriefs.png" alt="True Conext Banner" class="w-full max-w-800px mb-6">
+    <h1 class="text-3xl font-bold mb-4 text-[#10ff92]">Campaign Brief Generator</h1>
+    
+    <!-- Brief Name Input -->
+    <div class="mb-6">
+      <label class="block text-lg font-semibold mb-2 text-[#10ff92]">Brief Name</label>
+      <input id="briefName" type="text" class="w-full p-3" placeholder="e.g., iGrowan | Lagofast">
+    </div>
+
+    <!-- Field Addition Section -->
+    <div class="mb-6">
+      <label class="block text-lg font-semibold mb-2 text-[#10ff92]">Add Field</label>
+      <select id="fieldType" class="w-full p-3 mb-2">
+        <option value="title">Title</option>
+        <option value="subtitle">Subtitle</option>
+        <option value="text">Text</option>
+        <option value="download">Download Button</option>
+        <option value="image">Image</option>
       </select>
+      <div id="fieldInputs" class="mt-2"></div>
+      <button id="addField" class="mt-2 bg-[#10ff92] text-[#232528] px-4 py-2 rounded hover:bg-[#0de07b] transition">Add Field</button>
     </div>
 
-    <div class="form-group">
-      <label for="creatorName">Creator Name *:</label>
-      <input type="text" id="creatorName" placeholder="e.g., nomoney.codm" required>
+    <!-- Fields Container -->
+    <div id="fieldsContainer" class="mb-6"></div>
+
+    <!-- Download Button -->
+    <button id="downloadBtn" class="bg-[#10ff92] text-[#232528] px-4 py-2 rounded hover:bg-[#0de07b] transition">Download HTML</button>
+
+    <!-- Preview Section -->
+    <div class="mt-6">
+      <h2 class="text-xl font-semibold mb-2 text-[#10ff92]">Preview</h2>
+      <div id="preview" class="preview-container"></div>
     </div>
-
-    <div class="form-group">
-      <label for="campaignName">Campaign Name:</label>
-      <input type="text" id="campaignName" placeholder="e.g., True Conext">
-    </div>
-
-    <div class="form-group">
-      <label for="currency">Currency:</label>
-      <select id="currency">
-        <option value="USD">USD ($)</option>
-        <option value="EUR">EUR (€)</option>
-      </select>
-    </div>
-
-    <div class="form-group">
-      <label for="payment">Payment:</label>
-      <input type="number" id="payment" placeholder="e.g., 150">
-    </div>
-
-    <div class="form-group">
-      <label for="draftDate">Draft Delivery Date (DD/MM/YYYY):</label>
-      <input type="text" id="draftDate" placeholder="e.g., 15/07/2025">
-    </div>
-
-    <div class="form-group">
-      <label for="postingDate">Posting Date (DD/MM/YYYY):</label>
-      <input type="text" id="postingDate" placeholder="e.g., 20/07/2025">
-    </div>
-
-    <div class="form-group">
-      <label>Deliverables:</label>
-      <div id="deliverables">
-        <input type="text" class="deliverable" placeholder="e.g., 1 Video TikTok" style="margin-bottom: 5px;">
-      </div>
-      <button onclick="addDeliverable()" class="add-block">Add Deliverable</button>
-    </div>
-
-    <div class="form-group">
-      <label for="hashtags">Hashtags Obligatorios:</label>
-      <input type="text" id="hashtags" placeholder="e.g., #lagofast, #ad, #TrueCX">
-    </div>
-
-    <div class="form-group">
-      <label>Assets (Add Link):</label>
-      <div id="assets">
-        <input type="url" class="asset" placeholder="e.g., https://drive.google.com/..." style="margin-bottom: 5px;">
-      </div>
-      <button onclick="addAsset()" class="add-block">Add Asset</button>
-    </div>
-
-    <div class="form-group">
-      <label>Description:</label>
-      <div id="description">
-        <textarea id="descSection1" placeholder="e.g., Mandatory text..." style="margin-bottom: 5px; height: 100px;"></textarea>
-      </div>
-      <button onclick="addDescriptionSection()" class="add-block">Add Subsection</button>
-    </div>
-
-    <div class="form-group">
-      <label for="metrics">Metrics Delivery:</label>
-      <textarea id="metrics" placeholder="e.g., Send metrics within 7 days..." style="height: 100px;"></textarea>
-    </div>
-
-    <div class="form-group">
-      <label for="talkingPoints">Key Instructions:</label>
-      <textarea id="talkingPoints" placeholder="e.g., 1. Show ping before and after..." style="height: 100px;"></textarea>
-    </div>
-
-    <div class="form-group">
-      <label>Any Additional Block?:</label>
-      <button onclick="addCustomBlock()" class="add-block">Add Custom Block</button>
-      <div id="customBlocks"></div>
-    </div>
-
-    <button onclick="generatePreview()" class="add-block">Preview</button>
-    <a id="downloadLink" class="download-btn" style="display: none;">Save</a>
-
-    <div class="preview" id="preview"></div>
   </div>
 
   <script>
-    let language = 'en';
+    const fieldTypeSelect = document.getElementById('fieldType');
+    const fieldInputs = document.getElementById('fieldInputs');
+    const addFieldBtn = document.getElementById('addField');
+    const fieldsContainer = document.getElementById('fieldsContainer');
+    const briefNameInput = document.getElementById('briefName');
+    const preview = document.getElementById('preview');
+    const downloadBtn = document.getElementById('downloadBtn');
+    let fields = [];
 
-    const translations = {
-      en: {
-        creatorName: "Creator Name *",
-        campaignName: "Campaign Name",
-        currency: "Currency",
-        payment: "Payment",
-        draftDate: "Draft Delivery Date (DD/MM/YYYY)",
-        postingDate: "Posting Date (DD/MM/YYYY)",
-        deliverables: "Deliverables",
-        hashtags: "Hashtags Obligatorios",
-        assets: "Assets (Add Link)",
-        description: "Description",
-        metrics: "Metrics Delivery",
-        talkingPoints: "Key Instructions",
-        additionalBlock: "Any Additional Block?",
-        addDeliverable: "Add Deliverable",
-        addAsset: "Add Asset",
-        addSubsection: "Add Subsection",
-        addCustomBlock: "Add Custom Block",
-        preview: "Preview",
-        download: "Save",
-        campaignDetails: "Campaign Details",
-        mandatoryText: "Description",
-        metricsDelivery: "Metrics Delivery",
-        keyInstructions: "Key Instructions"
-      },
-      es: {
-        creatorName: "Nombre del Creador *",
-        campaignName: "Nombre de la Campaña",
-        currency: "Moneda",
-        payment: "Pago",
-        draftDate: "Fecha de Entrega del Borrador (DD/MM/YYYY)",
-        postingDate: "Fecha de Publicación (DD/MM/YYYY)",
-        deliverables: "Entregables",
-        hashtags: "Hashtags Obligatorios",
-        assets: "Activos (Agregar Enlace)",
-        description: "Descripción",
-        metrics: "Entrega de métricas",
-        talkingPoints: "Instrucciones clave",
-        additionalBlock: "¿Algún Bloque Adicional?",
-        addDeliverable: "Agregar Entregable",
-        addAsset: "Agregar Activo",
-        addSubsection: "Agregar Subsección",
-        addCustomBlock: "Agregar Bloque Personalizado",
-        preview: "Vista Previa",
-        download: "Guardar",
-        campaignDetails: "Datos de campaña",
-        mandatoryText: "Descripción",
-        metricsDelivery: "Entrega de métricas",
-        keyInstructions: "Instrucciones clave"
+    // Handle field type selection
+    fieldTypeSelect.addEventListener('change', () => {
+      const type = fieldTypeSelect.value;
+      fieldInputs.innerHTML = '';
+      if (type === 'title' || type === 'subtitle') {
+        fieldInputs.innerHTML = `
+          <input type="text" id="fieldContent" class="w-full p-3" placeholder="Enter ${type}">
+        `;
+      } else if (type === 'text') {
+        fieldInputs.innerHTML = `
+          <textarea id="fieldContent" class="w-full p-3" placeholder="Enter text (e.g., &lt;p&gt;&lt;strong&gt;Pago:&lt;/strong&gt; )"></textarea>
+          <input type="text" id="highlightWords" class="w-full p-3 mt-2" placeholder="Words to highlight (comma-separated)">
+        `;
+      } else if (type === 'download') {
+        fieldInputs.innerHTML = `
+          <input type="text" id="fieldContent" class="w-full p-3" placeholder="Enter download link">
+        `;
+      } else if (type === 'image') {
+        fieldInputs.innerHTML = `
+          <input type="text" id="fieldContent" class="w-full p-3" placeholder="Enter image URL">
+        `;
       }
-    };
-
-    function setLanguage() {
-      language = document.getElementById('language').value;
-      updateLabels();
-      generatePreview(); // Update preview with new language
-    }
-
-    function updateLabels() {
-      const labels = document.getElementsByTagName('label');
-      for (let label of labels) {
-        const forId = label.getAttribute('for');
-        if (translations[language][forId]) {
-          label.textContent = translations[language][forId];
-        } else {
-          switch (label.textContent) {
-            case "Deliverables / Entregables:":
-              label.textContent = translations[language].deliverables + ":";
-              break;
-            case "Assets (Add Link) / Activos (Agregar Enlace):":
-              label.textContent = translations[language].assets + ":";
-              break;
-            case "Description / Descripción:":
-              label.textContent = translations[language].description + ":";
-              break;
-            case "Any Additional Block? / ¿Algún Bloque Adicional?:":
-              label.textContent = translations[language].additionalBlock + ":";
-              break;
-          }
-        }
-      }
-      document.querySelectorAll('button').forEach(btn => {
-        if (btn.textContent.includes('Add Deliverable')) btn.textContent = translations[language].addDeliverable;
-        if (btn.textContent.includes('Add Asset')) btn.textContent = translations[language].addAsset;
-        if (btn.textContent.includes('Add Subsection')) btn.textContent = translations[language].addSubsection;
-        if (btn.textContent.includes('Add Custom Block')) btn.textContent = translations[language].addCustomBlock;
-        if (btn.textContent.includes('Preview')) btn.textContent = translations[language].preview;
-      });
-      document.getElementById('downloadLink').textContent = translations[language].download;
-    }
-
-    function addDeliverable() {
-      const div = document.getElementById('deliverables');
-      const input = document.createElement('input');
-      input.type = 'text';
-      input.className = 'deliverable';
-      input.placeholder = 'e.g., 1 Video TikTok';
-      input.style.marginBottom = '5px';
-      div.appendChild(input);
-    }
-
-    function addAsset() {
-      const div = document.getElementById('assets');
-      const input = document.createElement('input');
-      input.type = 'url';
-      input.className = 'asset';
-      input.placeholder = 'e.g., https://drive.google.com/...';
-      input.style.marginBottom = '5px';
-      div.appendChild(input);
-    }
-
-    function addDescriptionSection() {
-      const div = document.getElementById('description');
-      const textarea = document.createElement('textarea');
-      textarea.id = `descSection${document.querySelectorAll('#description textarea').length + 1}`;
-      textarea.placeholder = 'e.g., Mandatory text...';
-      textarea.style.marginBottom = '5px';
-      textarea.style.height = '100px';
-      div.appendChild(textarea);
-    }
-
-    function addCustomBlock() {
-      const div = document.getElementById('customBlocks');
-      const blockDiv = document.createElement('div');
-      blockDiv.className = 'section';
-      blockDiv.innerHTML = `
-        <input type="text" class="custom-title" placeholder="Title" style="margin-bottom: 5px;">
-        <textarea class="custom-content" placeholder="Content" style="margin-bottom: 5px; height: 100px;"></textarea>
-        <button onclick="this.parentElement.remove()" class="remove-btn">Remove / Eliminar</button>
-      `;
-      div.appendChild(blockDiv);
-    }
-
-    function highlightText(event) {
-      const textarea = event.target;
-      const start = textarea.selectionStart;
-      const end = textarea.selectionEnd;
-      if (start !== end) {
-        const text = textarea.value;
-        const selected = text.substring(start, end);
-        const highlighted = `<span class="highlight">${selected}</span>`;
-        textarea.value = text.substring(0, start) + highlighted + text.substring(end);
-        textarea.setSelectionRange(start + highlighted.length - selected.length, start + highlighted.length - selected.length);
-      }
-    }
-
-    document.querySelectorAll('textarea').forEach(textarea => {
-      textarea.addEventListener('mouseup', highlightText);
     });
 
-    function generatePreview() {
-      const creatorName = document.getElementById('creatorName').value;
-      const campaignName = document.getElementById('campaignName').value || 'Untitled Campaign';
-      const currency = document.getElementById('currency').value;
-      const payment = document.getElementById('payment').value;
-      const draftDate = document.getElementById('draftDate').value;
-      const postingDate = document.getElementById('postingDate').value;
-      const deliverables = Array.from(document.querySelectorAll('.deliverable')).map(d => d.value).filter(v => v);
-      const hashtags = document.getElementById('hashtags').value;
-      const assets = Array.from(document.querySelectorAll('.asset')).map(a => a.value).filter(v => v);
-      const descSections = Array.from(document.querySelectorAll('#description textarea')).map(t => t.value).filter(v => v);
-      const metrics = document.getElementById('metrics').value;
-      const talkingPoints = document.getElementById('talkingPoints').value;
-      const customBlocks = Array.from(document.querySelectorAll('.custom-title')).map((title, i) => ({
-        title: title.value,
-        content: title.nextElementSibling.value
-      })).filter(b => b.title || b.content);
+    // Trigger change to initialize field inputs
+    fieldTypeSelect.dispatchEvent(new Event('change'));
 
-      const sanitizedCreator = creatorName.replace(/[^a-zA-Z0-9]/g, '-');
-      const sanitizedCampaign = campaignName.replace(/[^a-zA-Z0-9]/g, '-');
-      const filename = `${sanitizedCreator}-${sanitizedCampaign}.html`;
+    // Add field to the list
+    addFieldBtn.addEventListener('click', () => {
+      const type = fieldTypeSelect.value;
+      const content = document.getElementById('fieldContent').value;
+      let highlightWords = document.getElementById('highlightWords')?.value.split(',').map(w => w.trim()) || [];
+      if (!content) return alert('Please enter content for the field');
 
-      let html = `
+      fields.push({ type, content, highlightWords });
+      renderFields();
+      updatePreview();
+      document.getElementById('fieldContent').value = '';
+      if (document.getElementById('highlightWords')) document.getElementById('highlightWords').value = '';
+    });
+
+    // Render fields in the UI
+    function renderFields() {
+      fieldsContainer.innerHTML = '';
+      fields.forEach((field, index) => {
+        const fieldDiv = document.createElement('div');
+        fieldDiv.className = 'border border-[#10ff92] p-4 mb-2 rounded bg-[#2a2c30]';
+        fieldDiv.innerHTML = `
+          <p class="text-[#10ff92]"><strong>Type:</strong> ${field.type}</p>
+          <p><strong>Content:</strong> ${field.content}</p>
+          ${field.highlightWords?.length ? `<p class="text-[#10ff92]"><strong>Highlight Words:</strong> ${field.highlightWords.join(', ')}</p>` : ''}
+          <button class="bg-[#7822ff] text-white px-2 py-1 rounded hover:bg-[#641cdc] transition" onclick="removeField(${index})">Remove</button>
+        `;
+        fieldsContainer.appendChild(fieldDiv);
+      });
+    }
+
+    // Remove a field
+    window.removeField = (index) => {
+      fields.splice(index, 1);
+      renderFields();
+      updatePreview();
+    };
+
+    // Update preview
+    function updatePreview() {
+      const briefName = briefNameInput.value || 'Campaign Brief';
+      let htmlContent = `
+        <div style="font-family: Arial, sans-serif; max-width: 800px; margin: auto; padding: 20px; background: #232528; color: #ffffff;">
+          <img src="https://trueconext.com/assets/TheBriefs.png" alt="Banner" style="width: 100%; max-width: 800px;">
+          <h1 style="font-weight: bold; font-size: 24px; margin-top: 20px; color: #10ff92;">${briefName}</h1>
+      `;
+
+      fields.forEach(field => {
+        if (field.type === 'title') {
+          htmlContent += `<h2 style="font-weight: bold; font-size: 20px; margin-top: 20px; color: #10ff92;">${field.content}</h2>`;
+        } else if (field.type === 'subtitle') {
+          htmlContent += `<h3 style="font-weight: bold; font-size: 18px; margin-top: 15px; color: #10ff92;">${field.content}</h3>`;
+        } else if (field.type === 'text') {
+          let content = field.content;
+          // Preserve HTML structure and convert URLs to <a href="URL">link</a>
+          content = content.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1">link</a>');
+          // Highlight specified words
+          field.highlightWords.forEach(word => {
+            if (word) {
+              const regex = new RegExp(`\\b${word}\\b`, 'gi');
+              content = content.replace(regex, `<strong style="color: #7822ff;">${word}</strong>`);
+            }
+          });
+          htmlContent += `${content}`;
+        } else if (field.type === 'download') {
+          htmlContent += `<p style="margin-top: 10px;"><a href="${field.content}" style="background: #10ff92; color: #232528; padding: 8px 16px; text-decoration: none; border-radius: 4px;">Download</a></p>`;
+        } else if (field.type === 'image') {
+          htmlContent += `<img src="${field.content}" alt="Image" style="margin-top: 10px;">`;
+        }
+      });
+
+      htmlContent += `
+          <p style="margin-top: 20px; font-size: 14px;">© 2025 True Conext. Todos los derechos reservados.</p>
+          <p><a href="link" style="color: #10ff92;">Política de privacidad</a></p>
+        </div>
+      `;
+      preview.innerHTML = htmlContent;
+    }
+
+    // Update preview on input change
+    briefNameInput.addEventListener('input', updatePreview);
+
+    // Download HTML
+    downloadBtn.addEventListener('click', () => {
+      const briefName = briefNameInput.value || 'Campaign_Brief';
+      const htmlContent = `
 <!DOCTYPE html>
-<html lang="${language}">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Brief - ${creatorName} | ${campaignName}</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${briefName}</title>
   <style>
-    body { margin: 0; font-family: 'Work Sans', sans-serif; background-color: #1a1a1a; color: #e0e0e0; line-height: 1.6; }
-    header img { width: 100%; display: block; margin-bottom: -4px; }
-    .container { max-width: 900px; margin: 0 auto; padding: 20px; }
-    h1, h2 { color: #10ff92; margin-top: 40px; font-weight: bold; }
-    .section { background-color: #2d2d2d; border-left: 5px solid #7822ff; border-radius: 12px; padding: 20px; margin-top: 20px; }
-    a { color: #10ff92; word-break: break-word; }
-    .download-btn { background-color: #7822ff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin-top: 10px; }
-    .important { color: #ff4d4d; font-weight: bold; }
-    .highlight { background-color: #10ff92; color: #1a1a1a; font-weight: bold; padding: 2px 6px; border-radius: 4px; }
-    footer { text-align: center; padding: 40px 10px 20px; font-size: 0.9rem; color: #999; }
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
+      background: #232528;
+      color: #ffffff;
+    }
+    h1 {
+      font-weight: bold;
+      font-size: 24px;
+      color: #10ff92;
+    }
+    h2 {
+      font-weight: bold;
+      font-size: 20px;
+      margin-top: 20px;
+      color: #10ff92;
+    }
+    h3 {
+      font-weight: bold;
+      font-size: 18px;
+      margin-top: 15px;
+      color: #10ff92;
+    }
+    p {
+      margin-top: 10px;
+    }
+    a {
+      color: #10ff92;
+      text-decoration: underline;
+    }
+    a.download-btn {
+      background: #10ff92;
+      color: #232528;
+      padding: 8px 16px;
+      text-decoration: none;
+      border-radius: 4px;
+    }
+    img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 4px;
+    }
+    strong {
+      color: #7822ff;
+    }
   </style>
 </head>
 <body>
-  <header><img src="https://trueconext.com/assets/TheBriefs.png" alt="Banner True Conext"></header>
-  <div class="container">
-    <h1>Brief de campaña – ${creatorName} | ${campaignName}</h1>
-    <div class="section">
-      <h2>${translations[language].campaignDetails}</h2>
-      <p><strong>${language === 'es' ? 'Pago' : 'Payment'}:</strong> ${currency === 'USD' ? '$' : '€'}${payment}</p>
-      <p><strong>${language === 'es' ? 'Duración' : 'Duration'}:</strong> ${draftDate ? `${language === 'es' ? 'Borrador' : 'Draft'}: ${draftDate}, ${language === 'es' ? 'Publicación' : 'Posting'}: ${postingDate}` : 'N/A'}</p>
-    </div>
-    <div class="section">
-      <h2>${language === 'es' ? 'Entregables' : 'Deliverables'}</h2>
-      <ul>${deliverables.map(d => `<li>${d}</li>`).join('')}</ul>
-    </div>
-    ${assets.length ? `<div class="section"><h2>${language === 'es' ? 'Botón de descarga de logos' : 'Download Logos Button'}</h2>${assets.map(a => `<a href="${a}" class="download-btn">Descargar ${a.split('/').pop()}</a>`).join('')}</div>` : ''}
-    ${hashtags ? `<div class="section"><h2>${language === 'es' ? 'Hashtags obligatorios' : 'Mandatory Hashtags'}</h2><p>${hashtags}</p></div>` : ''}
-    <div class="section">
-      <h2>${translations[language].mandatoryText}</h2>
-      ${descSections.map(s => `<p>${s}</p>`).join('')}
-    </div>
-    ${metrics ? `<div class="section"><h2>${translations[language].metricsDelivery}</h2><p>${metrics}</p></div>` : ''}
-    ${talkingPoints ? `<div class="section"><h2>${translations[language].keyInstructions}</h2><p>${talkingPoints}</p></div>` : ''}
-    ${customBlocks.map(b => `<div class="section"><h2>${b.title}</h2><p>${b.content}</p></div>`).join('')}
-    <footer>© 2025 True Conext. ${language === 'es' ? 'Todos los derechos reservados' : 'All rights reserved'}.<br /><a href="#">${language === 'es' ? 'Política de privacidad' : 'Privacy Policy'}</a></footer>
-  </div>
+  <img src="https://trueconext.com/assets/TheBriefs.png" alt="Banner">
+  <h1>${briefName}</h1>
+${fields.map(field => {
+  if (field.type === 'title') return `<h2>${field.content}</h2>`;
+  if (field.type === 'subtitle') return `<h3>${field.content}</h3>`;
+  if (field.type === 'text') {
+    let content = field.content;
+    content = content.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1">link</a>');
+    field.highlightWords.forEach(word => {
+      if (word) {
+        const regex = new RegExp(`\\b${word}\\b`, 'gi');
+        content = content.replace(regex, `<strong>${word}</strong>`);
+      }
+    });
+    return content;
+  }
+  if (field.type === 'download') return `<p><a href="${field.content}" class="download-btn">Download</a></p>`;
+  if (field.type === 'image') return `<img src="${field.content}" alt="Image">`;
+}).join('')}
+  <p>© 2025 True Conext. Todos los derechos reservados.</p>
+  <p><a href="link">Política de privacidad</a></p>
 </body>
-</html>`;
-
-      document.getElementById('preview').innerHTML = html;
-      const blob = new Blob([html], { type: 'text/html' });
+</html>
+      `;
+      const blob = new Blob([htmlContent], { type: 'text/html' });
       const url = URL.createObjectURL(blob);
-      document.getElementById('downloadLink').href = url;
-      document.getElementById('downloadLink').download = filename;
-      document.getElementById('downloadLink').style.display = 'inline-block';
-    }
-
-    // Initial label update
-    updateLabels();
-    document.querySelectorAll('textarea').forEach(textarea => {
-      textarea.addEventListener('mouseup', highlightText);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${briefName.replace(/\s+/g, '_')}.html`;
+      a.click();
+      URL.revokeObjectURL(url);
     });
   </script>
 </body>
