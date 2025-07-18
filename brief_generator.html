@@ -176,6 +176,8 @@
         });
       } else if (type === 'download') {
         fieldInputs.innerHTML = `
+          <label class="block text-sm text-[#10ff92] mb-1">Button Text</label>
+          <input type="text" id="buttonText" class="w-full p-3 mb-2" placeholder="Enter button text, e.g., Get File">
           <input type="text" id="fieldContent" class="w-full p-3" placeholder="Enter download link">
         `;
       } else if (type === 'image') {
@@ -192,14 +194,16 @@
     addFieldBtn.addEventListener('click', () => {
       const type = fieldTypeSelect.value;
       const content = document.getElementById('fieldContent').value;
+      const buttonText = document.getElementById('buttonText')?.value || 'Download';
       const label = document.getElementById('useLabel')?.checked ? document.getElementById('fieldLabel').value : '';
       let highlightWords = document.getElementById('highlightWords')?.value.split(',').map(w => w.trim()) || [];
       if (!content) return alert('Please enter content for the field');
 
-      fields.push({ type, content, label, highlightWords });
+      fields.push({ type, content, buttonText, label, highlightWords });
       renderFields();
       updatePreview();
       document.getElementById('fieldContent').value = '';
+      if (document.getElementById('buttonText')) document.getElementById('buttonText').value = '';
       if (document.getElementById('fieldLabel')) document.getElementById('fieldLabel').value = 'Label';
       if (document.getElementById('highlightWords')) document.getElementById('highlightWords').value = '';
       if (document.getElementById('useLabel')) document.getElementById('useLabel').checked = false;
@@ -214,6 +218,7 @@
         fieldDiv.innerHTML = `
           <p class="text-[#10ff92]"><strong>Type:</strong> ${field.type}</p>
           <p><strong>Content:</strong> ${field.content}</p>
+          ${field.buttonText ? `<p class="text-[#10ff92]"><strong>Button Text:</strong> ${field.buttonText}</p>` : ''}
           ${field.label ? `<p class="text-[#10ff92]"><strong>Label:</strong> ${field.label}</p>` : ''}
           ${field.highlightWords?.length ? `<p class="text-[#10ff92]"><strong>Highlight Words:</strong> ${field.highlightWords.join(', ')}</p>` : ''}
           <button class="bg-[#7822ff] text-white px-2 py-1 rounded hover:bg-[#641cdc] transition" onclick="removeField(${index})">Remove</button>
@@ -259,7 +264,7 @@
           if (field.label) {
             content = `<p><strong style="color: #ffffff;">${field.label}:</strong> ${content}</p>`;
           }
-          content = content.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1">link</a>');
+          content = content.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1">$1</a>');
           field.highlightWords.forEach(word => {
             if (word) {
               const regex = new RegExp(`\\b${word}\\b`, 'gi');
@@ -268,7 +273,7 @@
           });
           htmlContent += content;
         } else if (field.type === 'download') {
-          htmlContent += `<p><a href="${field.content}" style="background: #10ff92; color: #232528; padding: 8px 16px; text-decoration: none; border-radius: 4px;">Download</a></p>`;
+          htmlContent += `<p><a href="${field.content}" style="background: #10ff92; color: #232528; padding: 8px 16px; text-decoration: none; border-radius: 4px;">${field.buttonText}</a></p>`;
         } else if (field.type === 'image') {
           htmlContent += `<img src="${field.content}" alt="Image">`;
         }
@@ -386,8 +391,8 @@ ${fields.map((field, index) => {
         content = content.replace(regex, `<strong>${word}</strong>`);
       }
     });
-    content = content.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1">link</a>') + '</div>';
-  } else if (field.type === 'download') content = `<p style="margin-top: ${marginTop};"><a href="${field.content}" class="download-btn">Download</a></p>`;
+    content = content.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1">$1</a>') + '</div>';
+  } else if (field.type === 'download') content = `<p style="margin-top: ${marginTop};"><a href="${field.content}" class="download-btn">${field.buttonText}</a></p>`;
   else if (field.type === 'image') content = `<img src="${field.content}" alt="Image" style="margin-top: ${marginTop};">`;
   return content + (index < fields.length - 1 ? '<hr class="gradient-separator">' : '');
 }).join('')}
