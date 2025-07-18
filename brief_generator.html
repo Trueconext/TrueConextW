@@ -1,0 +1,409 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Campaign Brief Generator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #232528;
+      color: #ffffff;
+    }
+    .preview-container {
+      border: 1px solid #10ff92;
+      padding: 20px;
+      background: #2a2c30;
+      border-radius: 8px;
+    }
+    .generated-html {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    a {
+      color: #10ff92;
+      text-decoration: underline;
+    }
+    .download-btn {
+      background: #10ff92;
+      color: #232528;
+      padding: 8px 16px;
+      border-radius: 4px;
+      text-decoration: none;
+    }
+    input, select, textarea {
+      background: #2a2c30;
+      color: #ffffff;
+      border: 1px solid #10ff92;
+      border-radius: 4px;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #7822ff;
+      box-shadow: 0 0 5px rgba(120, 34, 255, 0.5);
+    }
+    img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 4px;
+    }
+    /* Improved Animated Gradient Separator */
+    .gradient-separator {
+      height: 2px;
+      background: linear-gradient(to right, #10ff92, #7822ff);
+      border: none;
+      margin: 20px 0;
+      animation: smoothTransition 8s infinite linear;
+    }
+    @keyframes smoothTransition {
+      0% { background: linear-gradient(to right, #10ff92, #7822ff); }
+      50% { background: linear-gradient(to right, #7822ff, #10ff92); }
+      100% { background: linear-gradient(to right, #10ff92, #7822ff); }
+    }
+  </style>
+</head>
+<body class="p-4">
+  <div class="max-w-4xl mx-auto">
+    <img src="https://trueconext.com/assets/TheBriefs.png" alt="True Conext Banner" class="w-full max-w-800px mb-6">
+    <h1 class="text-3xl font-bold mb-4 text-[#10ff92]">Campaign Brief Generator</h1>
+    
+    <!-- Brief Name Input -->
+    <div class="mb-6">
+      <label class="block text-lg font-semibold mb-2 text-[#10ff92]">Brief Name</label>
+      <input id="briefName" type="text" class="w-full p-3" placeholder="e.g., iGrowan | Lagofast">
+    </div>
+
+    <!-- Field Addition Section -->
+    <div class="mb-6">
+      <label class="block text-lg font-semibold mb-2 text-[#10ff92]">Add Field</label>
+      <select id="fieldType" class="w-full p-3 mb-2">
+        <option value="title">Title</option>
+        <option value="subtitle">Subtitle</option>
+        <option value="text">Text</option>
+        <option value="download">Download Button</option>
+        <option value="image">Image</option>
+      </select>
+      <div id="fieldInputs" class="mt-2"></div>
+      <button id="addField" class="mt-2 bg-[#10ff92] text-[#232528] px-4 py-2 rounded hover:bg-[#0de07b] transition">Add Field</button>
+    </div>
+
+    <!-- Fields Container -->
+    <div id="fieldsContainer" class="mb-6"></div>
+
+    <!-- Download Button -->
+    <button id="downloadBtn" class="bg-[#10ff92] text-[#232528] px-4 py-2 rounded hover:bg-[#0de07b] transition">Download HTML</button>
+
+    <!-- Preview Section -->
+    <div class="mt-6">
+      <h2 class="text-xl font-semibold mb-2 text-[#10ff92]">Preview</h2>
+      <div id="preview" class="preview-container"></div>
+    </div>
+  </div>
+
+  <script>
+    const fieldTypeSelect = document.getElementById('fieldType');
+    const fieldInputs = document.getElementById('fieldInputs');
+    const addFieldBtn = document.getElementById('addField');
+    const fieldsContainer = document.getElementById('fieldsContainer');
+    const briefNameInput = document.getElementById('briefName');
+    const preview = document.getElementById('preview');
+    const downloadBtn = document.getElementById('downloadBtn');
+    let fields = [];
+
+    // Handle field type selection
+    fieldTypeSelect.addEventListener('change', () => {
+      const type = fieldTypeSelect.value;
+      fieldInputs.innerHTML = '';
+      if (type === 'title' || type === 'subtitle') {
+        fieldInputs.innerHTML = `
+          <input type="text" id="fieldContent" class="w-full p-3" placeholder="Enter ${type}">
+        `;
+      } else if (type === 'text') {
+        fieldInputs.innerHTML = `
+          <label class="block text-sm text-[#10ff92] mb-1">Add Label (optional)</label>
+          <input type="checkbox" id="useLabel" class="mr-2">
+          <label for="useLabel" class="text-sm">Use Label</label>
+          <input type="text" id="fieldLabel" class="w-full p-3 mt-1" placeholder="Enter label (e.g., Pago)" style="display: none;">
+          <textarea id="fieldContent" class="w-full p-3 mt-2" placeholder="Enter text"></textarea>
+          <input type="text" id="highlightWords" class="w-full p-3 mt-2" placeholder="Words to highlight (comma-separated)">
+        `;
+        const useLabelCheckbox = document.getElementById('useLabel');
+        const labelInput = document.getElementById('fieldLabel');
+        useLabelCheckbox.addEventListener('change', () => {
+          labelInput.style.display = useLabelCheckbox.checked ? 'block' : 'none';
+          labelInput.value = useLabelCheckbox.checked ? 'Label' : '';
+          updatePreview();
+        });
+      } else if (type === 'download') {
+        fieldInputs.innerHTML = `
+          <input type="text" id="fieldContent" class="w-full p-3" placeholder="Enter download link">
+        `;
+      } else if (type === 'image') {
+        fieldInputs.innerHTML = `
+          <input type="text" id="fieldContent" class="w-full p-3" placeholder="Enter image URL">
+        `;
+      }
+    });
+
+    // Trigger change to initialize field inputs
+    fieldTypeSelect.dispatchEvent(new Event('change'));
+
+    // Add field to the list
+    addFieldBtn.addEventListener('click', () => {
+      const type = fieldTypeSelect.value;
+      const content = document.getElementById('fieldContent').value;
+      const label = document.getElementById('useLabel')?.checked ? document.getElementById('fieldLabel').value : '';
+      let highlightWords = document.getElementById('highlightWords')?.value.split(',').map(w => w.trim()) || [];
+      if (!content) return alert('Please enter content for the field');
+
+      fields.push({ type, content, label, highlightWords });
+      renderFields();
+      updatePreview();
+      document.getElementById('fieldContent').value = '';
+      if (document.getElementById('fieldLabel')) document.getElementById('fieldLabel').value = 'Label';
+      if (document.getElementById('highlightWords')) document.getElementById('highlightWords').value = '';
+      if (document.getElementById('useLabel')) document.getElementById('useLabel').checked = false;
+    });
+
+    // Render fields in the UI
+    function renderFields() {
+      fieldsContainer.innerHTML = '';
+      fields.forEach((field, index) => {
+        const fieldDiv = document.createElement('div');
+        fieldDiv.className = 'border border-[#10ff92] p-4 mb-2 rounded bg-[#2a2c30]';
+        fieldDiv.innerHTML = `
+          <p class="text-[#10ff92]"><strong>Type:</strong> ${field.type}</p>
+          <p><strong>Content:</strong> ${field.content}</p>
+          ${field.label ? `<p class="text-[#10ff92]"><strong>Label:</strong> ${field.label}</p>` : ''}
+          ${field.highlightWords?.length ? `<p class="text-[#10ff92]"><strong>Highlight Words:</strong> ${field.highlightWords.join(', ')}</p>` : ''}
+          <button class="bg-[#7822ff] text-white px-2 py-1 rounded hover:bg-[#641cdc] transition" onclick="removeField(${index})">Remove</button>
+        `;
+        fieldsContainer.appendChild(fieldDiv);
+      });
+    }
+
+    // Remove a field
+    window.removeField = (index) => {
+      fields.splice(index, 1);
+      renderFields();
+      updatePreview();
+    };
+
+    // Update preview
+    function updatePreview() {
+      const briefName = briefNameInput.value || 'Campaign Brief';
+      let htmlContent = `
+        <div style="font-family: Arial, sans-serif; max-width: 800px; margin: auto; padding: 20px; background: #232528; color: #ffffff;">
+          <img src="https://trueconext.com/assets/TheBriefs.png" alt="Banner" style="width: 100%; max-width: 800px;">
+          <h1 style="font-weight: bold; font-size: 24px; margin-top: 20px; color: #10ff92;">${briefName}</h1>
+      `;
+
+      let prevType = '';
+      fields.forEach((field, index) => {
+        let marginTop = '20px'; // Default spacing
+        if (prevType === 'title' && (field.type === 'text' || field.type === 'image' || field.type === 'download')) {
+          marginTop = '10px'; // Title to its text
+        } else if ((prevType === 'text' || prevType === 'image' || prevType === 'download') && field.type === 'title') {
+          marginTop = '30px'; // Text/Image/Download to next title
+        } else if (field.type === 'download' && index < fields.length - 1 && fields[index + 1].type === 'text') {
+          marginTop = '20px'; // Ensure space after Download before text/link
+        }
+        htmlContent += `<div style="margin-top: ${marginTop};">`;
+
+        if (field.type === 'title') {
+          htmlContent += `<h2 style="font-weight: bold; font-size: 20px; color: #10ff92;">${field.content}</h2>`;
+        } else if (field.type === 'subtitle') {
+          htmlContent += `<h3 style="font-weight: bold; font-size: 18px; color: #10ff92;">${field.content}</h3>`;
+        } else if (field.type === 'text') {
+          let content = field.content;
+          if (field.label) {
+            content = `<p><strong style="color: #ffffff;">${field.label}:</strong> ${content}</p>`;
+          }
+          content = content.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1">link</a>');
+          field.highlightWords.forEach(word => {
+            if (word) {
+              const regex = new RegExp(`\\b${word}\\b`, 'gi');
+              content = content.replace(regex, `<strong style="color: #7822ff;">${word}</strong>`);
+            }
+          });
+          htmlContent += content;
+        } else if (field.type === 'download') {
+          htmlContent += `<p><a href="${field.content}" style="background: #10ff92; color: #232528; padding: 8px 16px; text-decoration: none; border-radius: 4px;">Download</a></p>`;
+        } else if (field.type === 'image') {
+          htmlContent += `<img src="${field.content}" alt="Image">`;
+        }
+        htmlContent += `</div>`;
+        if (index < fields.length - 1) {
+          htmlContent += '<hr class="gradient-separator">';
+        }
+        prevType = field.type;
+      });
+
+      htmlContent += `
+          <p style="margin-top: 20px; font-size: 14px;">© 2025 True Conext. Todos los derechos reservados.</p>
+          <p><a href="link" style="color: #10ff92;">Política de privacidad</a></p>
+        </div>
+      `;
+      preview.innerHTML = htmlContent;
+    }
+
+    // Update preview on input change
+    briefNameInput.addEventListener('input', updatePreview);
+
+    // Download HTML
+    downloadBtn.addEventListener('click', () => {
+      const briefName = briefNameInput.value || 'Campaign_Brief';
+      const htmlContent = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${briefName}</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
+      background: #232528;
+      color: #ffffff;
+    }
+    h1 {
+      font-weight: bold;
+      font-size: 24px;
+      color: #10ff92;
+    }
+    h2 {
+      font-weight: bold;
+      font-size: 20px;
+      color: #10ff92;
+    }
+    h3 {
+      font-weight: bold;
+      font-size: 18px;
+      color: #10ff92;
+    }
+    p {
+      margin-top: 10px;
+    }
+    a {
+      color: #10ff92;
+      text-decoration: underline;
+    }
+    a.download-btn {
+      background: #10ff92;
+      color: #232528;
+      padding: 8px 16px;
+      text-decoration: none;
+      border-radius: 4px;
+    }
+    img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 4px;
+    }
+    strong {
+      color: #7822ff;
+    }
+    .gradient-separator {
+      height: 2px;
+      background: linear-gradient(to right, #10ff92, #7822ff);
+      border: none;
+      margin: 20px 0;
+      animation: smoothTransition 8s infinite linear;
+    }
+    @keyframes smoothTransition {
+      0% { background: linear-gradient(to right, #10ff92, #7822ff); }
+      50% { background: linear-gradient(to right, #7822ff, #10ff92); }
+      100% { background: linear-gradient(to right, #10ff92, #7822ff); }
+    }
+  </style>
+</head>
+<body>
+  <img src="https://trueconext.com/assets/TheBriefs.png" alt="Banner">
+  <h1>${briefName}</h1>
+${fields.map((field, index) => {
+  let marginTop = '20px';
+  if (index === 0) marginTop = '0';
+  else if (fields[index - 1].type === 'title' && (field.type === 'text' || field.type === 'image' || field.type === 'download')) {
+    marginTop = '10px';
+  } else if ((fields[index - 1].type === 'text' || fields[index - 1].type === 'image' || fields[index - 1].type === 'download') && field.type === 'title') {
+    marginTop = '30px';
+  } else if (field.type === 'download' && index < fields.length - 1 && fields[index + 1].type === 'text') {
+    marginTop = '20px';
+  }
+  let content = '';
+  if (field.type === 'title') content = `<h2 style="margin-top: ${marginTop};">${field.content}</h2>`;
+  else if (field.type === 'subtitle') content = `<h3 style="margin-top: ${marginTop};">${field.content}</h3>`;
+  else if (field.type === 'text') {
+    content = `<div style="margin-top: ${marginTop};">`;
+    if (field.label) content += `<p><strong style="color: #ffffff;">${field.label}:</strong> ${field.content}</p>`;
+    else content += `<p>${field.content}</p>`;
+    field.highlightWords.forEach(word => {
+      if (word) {
+        const regex = new RegExp(`\\b${word}\\b`, 'gi');
+        content = content.replace(regex, `<strong>${word}</strong>`);
+      }
+    });
+    content = content.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1">link</a>') + '</div>';
+  } else if (field.type === 'download') content = `<p style="margin-top: ${marginTop};"><a href="${field.content}" class="download-btn">Download</a></p>`;
+  else if (field.type === 'image') content = `<img src="${field.content}" alt="Image" style="margin-top: ${marginTop};">`;
+  return content + (index < fields.length - 1 ? '<hr class="gradient-separator">' : '');
+}).join('')}
+  <p>© 2025 True Conext. Todos los derechos reservados.</p>
+  <p><a href="link">Política de privacidad</a></p>
+</body>
+</html>
+      `;
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${briefName.replace(/\s+/g, '_')}.html`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+  </script>
+</body>
+</html>
