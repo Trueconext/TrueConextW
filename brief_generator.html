@@ -264,7 +264,8 @@
           if (field.label) {
             content = `<p><strong style="color: #ffffff;">${field.label}:</strong> ${content}</p>`;
           }
-          content = content.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1">$1</a>');
+          // Make any "http" text clickable with original text
+          content = content.replace(/(http[s]?:\/\/[^\s]+)/g, '<a href="$1">$1</a>');
           field.highlightWords.forEach(word => {
             if (word) {
               const regex = new RegExp(`\\b${word}\\b`, 'gi');
@@ -278,9 +279,6 @@
           htmlContent += `<img src="${field.content}" alt="Image">`;
         }
         htmlContent += `</div>`;
-        if (index < fields.length - 1) {
-          htmlContent += '<hr class="gradient-separator">';
-        }
         prevType = field.type;
       });
 
@@ -385,13 +383,15 @@ ${fields.map((field, index) => {
     content = `<div style="margin-top: ${marginTop};">`;
     if (field.label) content += `<p><strong style="color: #ffffff;">${field.label}:</strong> ${field.content}</p>`;
     else content += `<p>${field.content}</p>`;
+    // Make any "http" text clickable with original text
+    content = content.replace(/(http[s]?:\/\/[^\s]+)/g, '<a href="$1">$1</a>');
     field.highlightWords.forEach(word => {
       if (word) {
         const regex = new RegExp(`\\b${word}\\b`, 'gi');
         content = content.replace(regex, `<strong>${word}</strong>`);
       }
     });
-    content = content.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1">$1</a>') + '</div>';
+    content += '</div>';
   } else if (field.type === 'download') content = `<p style="margin-top: ${marginTop};"><a href="${field.content}" class="download-btn">${field.buttonText}</a></p>`;
   else if (field.type === 'image') content = `<img src="${field.content}" alt="Image" style="margin-top: ${marginTop};">`;
   return content + (index < fields.length - 1 ? '<hr class="gradient-separator">' : '');
