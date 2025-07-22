@@ -42,373 +42,364 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Campaign Brief Generator</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>Brief Generator</title>
   <style>
     body {
-      font-family: 'Arial', sans-serif;
-      background-color: #232528;
+      background-color: #363638;
       color: #ffffff;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
-    .preview-container {
-      border: 1px solid #10ff92;
+    .header-img {
+      width: 100%;
+      height: auto;
+    }
+    .container {
+      width: 90%;
+      max-width: 800px;
+      margin-top: 30px;
       padding: 20px;
-      background: #2a2c30;
-      border-radius: 8px;
     }
-    .generated-html {
-      max-height: 400px;
-      overflow-y: auto;
+    .input-field {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      background-color: #242226;
+      border: none;
+      color: #ffffff;
+      box-sizing: border-box;
     }
-    a {
+    .textarea-field {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      background-color: #242226;
+      border: none;
+      color: #ffffff;
+      box-sizing: border-box;
+      resize: vertical;
+    }
+    .button-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .add-btn {
+      padding: 10px 20px;
+      background-color: #10ff92;
+      border: none;
+      color: #ffffff;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    .remove-btn {
+      padding: 5px 10px;
+      background-color: #ff4d4d;
+      border: none;
+      color: #ffffff;
+      cursor: pointer;
+      border-radius: 5px;
+      font-size: 0.9em;
+      opacity: 0.8;
+      transition: opacity 0.3s;
+    }
+    .remove-btn:hover {
+      opacity: 1;
+    }
+    .card {
+      background-color: #242226;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 10px;
+    }
+    .card-title {
+      font-size: 1.5em;
       color: #10ff92;
-      text-decoration: underline;
+      margin-bottom: 10px;
+    }
+    .card-content {
+      margin-left: 20px;
+    }
+    .text-content {
+      white-space: pre-wrap;
+    }
+    .highlight {
+      background-color: #7822ff;
+      padding: 2px 5px;
+    }
+    .bold {
+      font-weight: bold;
     }
     .download-btn {
+      display: inline-block;
+      padding: 10px 20px;
       background: #10ff92;
-      color: #232528;
-      padding: 8px 16px;
-      border-radius: 4px;
+      color: #ffffff;
       text-decoration: none;
-    }
-    input, select, textarea {
-      background: #2a2c30;
-      color: #ffffff;
-      border: 1px solid #10ff92;
-      border-radius: 4px;
-    }
-    input:focus, select:focus, textarea:focus {
-      outline: none;
-      border-color: #7822ff;
-      box-shadow: 0 0 5px rgba(120, 34, 255, 0.5);
-    }
-    img {
-      max-width: 100%;
-      height: auto;
-      border-radius: 4px;
-    }
-    /* Improved Animated Gradient Separator */
-    .gradient-separator {
-      height: 2px;
-      background: linear-gradient(to right, #10ff92, #7822ff);
-      border: none;
-      margin: 20px 0;
-      animation: smoothTransition 8s infinite linear;
-    }
-    @keyframes smoothTransition {
-      0% { background: linear-gradient(to right, #10ff92, #7822ff); }
-      50% { background: linear-gradient(to right, #7822ff, #10ff92); }
-      100% { background: linear-gradient(to right, #10ff92, #7822ff); }
-    }
-  </style>
-</head>
-<body class="p-4">
-  <div class="max-w-4xl mx-auto">
-    <img src="https://trueconext.com/assets/TheBriefs.png" alt="True Conext Banner" class="w-full max-w-800px mb-6">
-    <h1 class="text-3xl font-bold mb-4 text-[#10ff92]">Campaign Brief Generator</h1>
-    
-    <!-- Brief Name Input -->
-    <div class="mb-6">
-      <label class="block text-lg font-semibold mb-2 text-[#10ff92]">Brief Name</label>
-      <input id="briefName" type="text" class="w-full p-3" placeholder="e.g., iGrowan | Lagofast">
-    </div>
-
-    <!-- Field Addition Section -->
-    <div class="mb-6">
-      <label class="block text-lg font-semibold mb-2 text-[#10ff92]">Add Field</label>
-      <select id="fieldType" class="w-full p-3 mb-2">
-        <option value="title">Title</option>
-        <option value="subtitle">Subtitle</option>
-        <option value="text">Text</option>
-        <option value="download">Download Button</option>
-        <option value="image">Image</option>
-      </select>
-      <div id="fieldInputs" class="mt-2"></div>
-      <button id="addField" class="mt-2 bg-[#10ff92] text-[#232528] px-4 py-2 rounded hover:bg-[#0de07b] transition">Add Field</button>
-    </div>
-
-    <!-- Fields Container -->
-    <div id="fieldsContainer" class="mb-6"></div>
-
-    <!-- Download Button -->
-    <button id="downloadBtn" class="bg-[#10ff92] text-[#232528] px-4 py-2 rounded hover:bg-[#0de07b] transition">Download HTML</button>
-
-    <!-- Preview Section -->
-    <div class="mt-6">
-      <h2 class="text-xl font-semibold mb-2 text-[#10ff92]">Preview</h2>
-      <div id="preview" class="preview-container"></div>
-    </div>
-  </div>
-
-  <script>
-    const fieldTypeSelect = document.getElementById('fieldType');
-    const fieldInputs = document.getElementById('fieldInputs');
-    const addFieldBtn = document.getElementById('addField');
-    const fieldsContainer = document.getElementById('fieldsContainer');
-    const briefNameInput = document.getElementById('briefName');
-    const preview = document.getElementById('preview');
-    const downloadBtn = document.getElementById('downloadBtn');
-    let fields = [];
-
-    // Handle field type selection
-    fieldTypeSelect.addEventListener('change', () => {
-      const type = fieldTypeSelect.value;
-      fieldInputs.innerHTML = '';
-      if (type === 'title' || type === 'subtitle') {
-        fieldInputs.innerHTML = `
-          <input type="text" id="fieldContent" class="w-full p-3" placeholder="Enter ${type}">
-        `;
-      } else if (type === 'text') {
-        fieldInputs.innerHTML = `
-          <label class="block text-sm text-[#10ff92] mb-1">Add Label (optional)</label>
-          <input type="checkbox" id="useLabel" class="mr-2">
-          <label for="useLabel" class="text-sm">Use Label</label>
-          <input type="text" id="fieldLabel" class="w-full p-3 mt-1" placeholder="Enter label (e.g., Pago)" style="display: none;">
-          <textarea id="fieldContent" class="w-full p-3 mt-2" placeholder="Enter text"></textarea>
-          <input type="text" id="highlightWords" class="w-full p-3 mt-2" placeholder="Words to highlight (comma-separated)">
-        `;
-        const useLabelCheckbox = document.getElementById('useLabel');
-        const labelInput = document.getElementById('fieldLabel');
-        useLabelCheckbox.addEventListener('change', () => {
-          labelInput.style.display = useLabelCheckbox.checked ? 'block' : 'none';
-          labelInput.value = useLabelCheckbox.checked ? 'Label' : '';
-          updatePreview();
-        });
-      } else if (type === 'download') {
-        fieldInputs.innerHTML = `
-          <label class="block text-sm text-[#10ff92] mb-1">Button Text</label>
-          <input type="text" id="buttonText" class="w-full p-3 mb-2" placeholder="Enter button text, e.g., Get File">
-          <input type="text" id="fieldContent" class="w-full p-3" placeholder="Enter download link">
-        `;
-      } else if (type === 'image') {
-        fieldInputs.innerHTML = `
-          <input type="text" id="fieldContent" class="w-full p-3" placeholder="Enter image URL">
-        `;
-      }
-    });
-
-    // Trigger change to initialize field inputs
-    fieldTypeSelect.dispatchEvent(new Event('change'));
-
-    // Add field to the list
-    addFieldBtn.addEventListener('click', () => {
-      const type = fieldTypeSelect.value;
-      const content = document.getElementById('fieldContent').value;
-      const buttonText = document.getElementById('buttonText')?.value || 'Download';
-      const label = document.getElementById('useLabel')?.checked ? document.getElementById('fieldLabel').value : '';
-      let highlightWords = document.getElementById('highlightWords')?.value.split(',').map(w => w.trim()) || [];
-      if (!content) return alert('Please enter content for the field');
-
-      fields.push({ type, content, buttonText, label, highlightWords });
-      renderFields();
-      updatePreview();
-      document.getElementById('fieldContent').value = '';
-      if (document.getElementById('buttonText')) document.getElementById('buttonText').value = '';
-      if (document.getElementById('fieldLabel')) document.getElementById('fieldLabel').value = 'Label';
-      if (document.getElementById('highlightWords')) document.getElementById('highlightWords').value = '';
-      if (document.getElementById('useLabel')) document.getElementById('useLabel').checked = false;
-    });
-
-    // Render fields in the UI
-    function renderFields() {
-      fieldsContainer.innerHTML = '';
-      fields.forEach((field, index) => {
-        const fieldDiv = document.createElement('div');
-        fieldDiv.className = 'border border-[#10ff92] p-4 mb-2 rounded bg-[#2a2c30]';
-        fieldDiv.innerHTML = `
-          <p class="text-[#10ff92]"><strong>Type:</strong> ${field.type}</p>
-          <p><strong>Content:</strong> ${field.content}</p>
-          ${field.buttonText ? `<p class="text-[#10ff92]"><strong>Button Text:</strong> ${field.buttonText}</p>` : ''}
-          ${field.label ? `<p class="text-[#10ff92]"><strong>Label:</strong> ${field.label}</p>` : ''}
-          ${field.highlightWords?.length ? `<p class="text-[#10ff92]"><strong>Highlight Words:</strong> ${field.highlightWords.join(', ')}</p>` : ''}
-          <button class="bg-[#7822ff] text-white px-2 py-1 rounded hover:bg-[#641cdc] transition" onclick="removeField(${index})">Remove</button>
-        `;
-        fieldsContainer.appendChild(fieldDiv);
-      });
-    }
-
-    // Remove a field
-    window.removeField = (index) => {
-      fields.splice(index, 1);
-      renderFields();
-      updatePreview();
-    };
-
-    // Update preview
-    function updatePreview() {
-      const briefName = briefNameInput.value || 'Campaign Brief';
-      let htmlContent = `
-        <div style="font-family: Arial, sans-serif; max-width: 800px; margin: auto; padding: 20px; background: #232528; color: #ffffff;">
-          <img src="https://trueconext.com/assets/TheBriefs.png" alt="Banner" style="width: 100%; max-width: 800px;">
-          <h1 style="font-weight: bold; font-size: 24px; margin-top: 20px; color: #10ff92;">${briefName}</h1>
-      `;
-
-      let prevType = '';
-      fields.forEach((field, index) => {
-        let marginTop = '20px'; // Default spacing
-        if (prevType === 'title' && (field.type === 'text' || field.type === 'image' || field.type === 'download')) {
-          marginTop = '10px'; // Title to its text
-        } else if ((prevType === 'text' || prevType === 'image' || prevType === 'download') && field.type === 'title') {
-          marginTop = '30px'; // Text/Image/Download to next title
-        } else if (field.type === 'download' && index < fields.length - 1 && fields[index + 1].type === 'text') {
-          marginTop = '20px'; // Ensure space after Download before text/link
-        }
-        htmlContent += `<div style="margin-top: ${marginTop};">`;
-
-        if (field.type === 'title') {
-          htmlContent += `<h2 style="font-weight: bold; font-size: 20px; color: #10ff92;">${field.content}</h2>`;
-        } else if (field.type === 'subtitle') {
-          htmlContent += `<h3 style="font-weight: bold; font-size: 18px; color: #10ff92;">${field.content}</h3>`;
-        } else if (field.type === 'text') {
-          let content = field.content;
-          if (field.label) {
-            content = `<p><strong style="color: #ffffff;">${field.label}:</strong> ${content}</p>`;
-          }
-          // Make any "http" text clickable with original text
-          content = content.replace(/(http[s]?:\/\/[^\s]+)/g, '<a href="$1">$1</a>');
-          field.highlightWords.forEach(word => {
-            if (word) {
-              const regex = new RegExp(`\\b${word}\\b`, 'gi');
-              content = content.replace(regex, `<strong style="color: #7822ff;">${word}</strong>`);
-            }
-          });
-          htmlContent += content;
-        } else if (field.type === 'download') {
-          htmlContent += `<p><a href="${field.content}" style="background: #10ff92; color: #232528; padding: 8px 16px; text-decoration: none; border-radius: 4px;">${field.buttonText}</a></p>`;
-        } else if (field.type === 'image') {
-          htmlContent += `<img src="${field.content}" alt="Image">`;
-        }
-        htmlContent += `</div>`;
-        prevType = field.type;
-      });
-
-      htmlContent += `
-          <p style="margin-top: 20px; font-size: 14px;">© 2025 True Conext. Todos los derechos reservados.</p>
-          <p><a href="link" style="color: #10ff92;">Política de privacidad</a></p>
-        </div>
-      `;
-      preview.innerHTML = htmlContent;
-    }
-
-    // Update preview on input change
-    briefNameInput.addEventListener('input', updatePreview);
-
-    // Download HTML
-    downloadBtn.addEventListener('click', () => {
-      const briefName = briefNameInput.value || 'Campaign_Brief';
-      const htmlContent = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${briefName}</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 800px;
-      margin: auto;
-      padding: 20px;
-      background: #232528;
-      color: #ffffff;
-    }
-    h1 {
-      font-weight: bold;
-      font-size: 24px;
-      color: #10ff92;
-    }
-    h2 {
-      font-weight: bold;
-      font-size: 20px;
-      color: #10ff92;
-    }
-    h3 {
-      font-weight: bold;
-      font-size: 18px;
-      color: #10ff92;
-    }
-    p {
+      border-radius: 5px;
       margin-top: 10px;
     }
-    a {
-      color: #10ff92;
-      text-decoration: underline;
-    }
-    a.download-btn {
-      background: #10ff92;
-      color: #232528;
-      padding: 8px 16px;
-      text-decoration: none;
-      border-radius: 4px;
-    }
-    img {
-      max-width: 100%;
-      height: auto;
-      border-radius: 4px;
-    }
-    strong {
-      color: #7822ff;
-    }
-    .gradient-separator {
+    .separator {
       height: 2px;
-      background: linear-gradient(to right, #10ff92, #7822ff);
-      border: none;
+      background: linear-gradient(90deg, #10ff92, #7822ff);
+      background-size: 200% 200%;
+      animation: gradientPulse 4s ease infinite;
       margin: 20px 0;
-      animation: smoothTransition 8s infinite linear;
     }
-    @keyframes smoothTransition {
-      0% { background: linear-gradient(to right, #10ff92, #7822ff); }
-      50% { background: linear-gradient(to right, #7822ff, #10ff92); }
-      100% { background: linear-gradient(to right, #10ff92, #7822ff); }
+    @keyframes gradientPulse {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .preview {
+      width: 100%;
+      background-color: #242226;
+      padding: 15px;
+      border-radius: 10px;
+      margin-top: 20px;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 20px;
+      color: #10ff92;
+    }
+    .footer a {
+      color: #10ff92;
+      text-decoration: none;
+    }
+    @media (max-width: 600px) {
+      .button-group {
+        flex-direction: column;
+      }
+      .add-btn {
+        width: 100%;
+      }
     }
   </style>
 </head>
 <body>
-  <img src="https://trueconext.com/assets/TheBriefs.png" alt="Banner">
-  <h1>${briefName}</h1>
-${fields.map((field, index) => {
-  let marginTop = '20px';
-  if (index === 0) marginTop = '0';
-  else if (fields[index - 1].type === 'title' && (field.type === 'text' || field.type === 'image' || field.type === 'download')) {
-    marginTop = '10px';
-  } else if ((fields[index - 1].type === 'text' || fields[index - 1].type === 'image' || fields[index - 1].type === 'download') && field.type === 'title') {
-    marginTop = '30px';
-  } else if (field.type === 'download' && index < fields.length - 1 && fields[index + 1].type === 'text') {
-    marginTop = '20px';
-  }
-  let content = '';
-  if (field.type === 'title') content = `<h2 style="margin-top: ${marginTop};">${field.content}</h2>`;
-  else if (field.type === 'subtitle') content = `<h3 style="margin-top: ${marginTop};">${field.content}</h3>`;
-  else if (field.type === 'text') {
-    content = `<div style="margin-top: ${marginTop};">`;
-    if (field.label) content += `<p><strong style="color: #ffffff;">${field.label}:</strong> ${field.content}</p>`;
-    else content += `<p>${field.content}</p>`;
-    // Make any "http" text clickable with original text
-    content = content.replace(/(http[s]?:\/\/[^\s]+)/g, '<a href="$1">$1</a>');
-    field.highlightWords.forEach(word => {
-      if (word) {
-        const regex = new RegExp(`\\b${word}\\b`, 'gi');
-        content = content.replace(regex, `<strong>${word}</strong>`);
+  <img src="https://trueconext.com/assets/TheBriefs.png" alt="Header Image" class="header-img">
+  <div class="container">
+    <input type="text" id="campaignName" class="input-field" placeholder="Campaign Name" oninput="updatePreview()">
+    <div class="button-group">
+      <button class="add-btn" style="background: #7822ff;" onclick="addField('title')">+ Add Title</button>
+      <button class="add-btn" onclick="addField('subtitle')">+ Add Subtitle</button>
+      <button class="add-btn" onclick="addField('text')">+ Add Text</button>
+      <button class="add-btn" onclick="addField('download')">+ Add Download Button</button>
+      <button class="add-btn" onclick="addField('separator')">+ Add Separator</button>
+    </div>
+    <div id="fieldsContainer"></div>
+    <div class="preview">
+      <h2 style="color: #10ff92;">Live Preview</h2>
+      <div id="previewContent"></div>
+    </div>
+    <a href="#" id="downloadLink" class="download-btn" onclick="downloadHTML()">Download HTML Brief</a>
+  </div>
+  <div class="footer">
+    © 2025 TrueConext. All rights reserved. <a href="https://trueconext.com/Privacy.html">Privacy Policy</a>
+  </div>
+
+  <script>
+    let fields = [];
+    let campaignName = '';
+
+    function addField(type) {
+      const container = document.getElementById('fieldsContainer');
+      let fieldHTML = '';
+
+      if (type === 'title') {
+        fieldHTML = `
+          <div class="card" data-type="title">
+            <input type="text" class="input-field card-title" placeholder="Title" oninput="updateField(this, 'title', ${fields.length})">
+            <div class="card-content" data-index="${fields.length}"></div>
+            <button class="remove-btn" onclick="removeField(this)">Remove</button>
+          </div>
+        `;
+        fields.push({ type: 'title', content: '', children: [] });
+      } else if (type === 'subtitle') {
+        const lastTitleIndex = fields.findLastIndex(f => f.type === 'title');
+        if (lastTitleIndex !== -1) {
+          fieldHTML = `
+            <div class="card-content" data-type="subtitle" data-index="${lastTitleIndex}">
+              <input type="text" class="input-field" placeholder="Subtitle" oninput="updateField(this, 'subtitle', ${lastTitleIndex})">
+              <button class="remove-btn" onclick="removeField(this)">Remove</button>
+            </div>
+          `;
+          fields[lastTitleIndex].children.push({ type: 'subtitle', content: '' });
+        }
+      } else if (type === 'text') {
+        const lastTitleIndex = fields.findLastIndex(f => f.type === 'title');
+        if (lastTitleIndex !== -1) {
+          fieldHTML = `
+            <div class="card-content" data-type="text" data-index="${lastTitleIndex}">
+              <textarea class="textarea-field" placeholder="Text" rows="4" oninput="updateField(this, 'text', ${lastTitleIndex})"></textarea>
+              <input type="text" class="input-field" placeholder="Highlight a word" oninput="updateField(this, 'highlight', ${lastTitleIndex})">
+              <input type="text" class="input-field" placeholder="Bold a word" oninput="updateField(this, 'bold', ${lastTitleIndex})">
+              <button class="remove-btn" onclick="removeField(this)">Remove</button>
+            </div>
+          `;
+          fields[lastTitleIndex].children.push({ type: 'text', content: '', highlight: '', bold: '' });
+        }
+      } else if (type === 'download') {
+        const lastTitleIndex = fields.findLastIndex(f => f.type === 'title');
+        if (lastTitleIndex !== -1) {
+          fieldHTML = `
+            <div class="card-content" data-type="download" data-index="${lastTitleIndex}">
+              <input type="text" class="input-field" placeholder="Button Name" oninput="updateField(this, 'name', ${lastTitleIndex})">
+              <input type="text" class="input-field" placeholder="Link" oninput="updateField(this, 'link', ${lastTitleIndex})">
+              <button class="remove-btn" onclick="removeField(this)">Remove</button>
+            </div>
+          `;
+          fields[lastTitleIndex].children.push({ type: 'download', name: '', link: '' });
+        }
+      } else if (type === 'separator') {
+        const lastTitleIndex = fields.findLastIndex(f => f.type === 'title');
+        if (lastTitleIndex !== -1) {
+          fieldHTML = `
+            <div class="card-content" data-type="separator" data-index="${lastTitleIndex}">
+              <div class="separator"></div>
+              <button class="remove-btn" onclick="removeField(this)">Remove</button>
+            </div>
+          `;
+          fields[lastTitleIndex].children.push({ type: 'separator', content: '' });
+        }
       }
-    });
-    content += '</div>';
-  } else if (field.type === 'download') content = `<p style="margin-top: ${marginTop};"><a href="${field.content}" class="download-btn">${field.buttonText}</a></p>`;
-  else if (field.type === 'image') content = `<img src="${field.content}" alt="Image" style="margin-top: ${marginTop};">`;
-  return content + (index < fields.length - 1 ? '<hr class="gradient-separator">' : '');
-}).join('')}
-  <p>© 2025 True Conext. Todos los derechos reservados.</p>
-  <p><a href="link">Política de privacidad</a></p>
-</body>
-</html>
+
+      if (fieldHTML) {
+        container.insertAdjacentHTML('beforeend', fieldHTML);
+        updatePreview();
+      }
+    }
+
+    function updateField(element, subType, index) {
+      const parent = element.closest('[data-type]');
+      const type = parent.dataset.type;
+
+      if (type === 'title') {
+        fields[index].content = element.value;
+      } else {
+        const childIndex = fields[index].children.findIndex(c => c.type === type);
+        if (childIndex !== -1) {
+          if (subType === 'title') {
+            fields[index].children[childIndex].content = element.value;
+          } else if (subType === 'subtitle') {
+            fields[index].children[childIndex].content = element.value;
+          } else if (subType === 'text') {
+            fields[index].children[childIndex].content = element.value;
+          } else if (subType === 'highlight') {
+            fields[index].children[childIndex].highlight = element.value;
+          } else if (subType === 'bold') {
+            fields[index].children[childIndex].bold = element.value;
+          } else if (subType === 'name') {
+            fields[index].children[childIndex].name = element.value;
+          } else if (subType === 'link') {
+            fields[index].children[childIndex].link = element.value;
+          }
+        }
+      }
+      updatePreview();
+    }
+
+    function removeField(button) {
+      const parent = button.parentElement;
+      const index = parent.dataset.index;
+      const type = parent.dataset.type;
+      if (type === 'title') {
+        fields.splice(index, 1);
+      } else {
+        const titleIndex = fields.findLastIndex(f => f.type === 'title');
+        if (titleIndex !== -1) {
+          const childIndex = fields[titleIndex].children.findIndex(c => c.type === type);
+          fields[titleIndex].children.splice(childIndex, 1);
+        }
+      }
+      parent.remove();
+      updatePreview();
+    }
+
+    function updatePreview() {
+      campaignName = document.getElementById('campaignName').value || 'Campaign Name';
+      const previewContent = document.getElementById('previewContent');
+      previewContent.innerHTML = '';
+
+      fields.forEach((field, index) => {
+        if (field.type === 'title') {
+          let cardContent = `<div class="card"><h3 class="card-title">${field.content || 'Title'}</h3><div class="card-content">`;
+          field.children.forEach(child => {
+            if (child.type === 'subtitle') {
+              cardContent += `<p>${child.content || 'Subtitle'}</p>`;
+            } else if (child.type === 'text') {
+              let text = child.content || '';
+              const highlightWords = child.highlight.split(',').map(w => w.trim()).filter(w => w);
+              const boldWords = child.bold.split(',').map(w => w.trim()).filter(w => w);
+              highlightWords.forEach(word => {
+                const regex = new RegExp(`\\b${word}\\b`, 'gi');
+                text = text.replace(regex, `<span class="highlight">$&</span>`);
+              });
+              boldWords.forEach(word => {
+                const regex = new RegExp(`\\b${word}\\b`, 'gi');
+                text = text.replace(regex, `<span class="bold">$&</span>`);
+              });
+              cardContent += `<div class="text-content">${text}</div>`;
+            } else if (child.type === 'download') {
+              cardContent += `<a href="${child.link || '#'}" target="_blank" class="download-btn">${child.name || 'Download'}</a>`;
+            } else if (child.type === 'separator') {
+              cardContent += `<div class="separator"></div>`;
+            }
+          });
+          cardContent += `</div></div>`;
+          previewContent.innerHTML += cardContent;
+        }
+      });
+    }
+
+    function downloadHTML() {
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>${campaignName}</title>
+          <style>
+            body { background-color: #363638; color: #ffffff; font-family: Arial, sans-serif; margin: 0; padding: 0; }
+            .header-img { width: 100%; height: auto; }
+            .container { width: 90%; max-width: 800px; margin: 30px auto; padding: 20px; }
+            .card { background-color: #242226; padding: 15px; margin-bottom: 15px; border-radius: 10px; }
+            .card-title { font-size: 1.5em; color: #10ff92; margin-bottom: 10px; }
+            .card-content { margin-left: 20px; }
+            .text-content { white-space: pre-wrap; }
+            .highlight { background-color: #7822ff; padding: 2px 5px; }
+            .bold { font-weight: bold; }
+            .download-btn { display: inline-block; padding: 10px 20px; background: #10ff92; color: #ffffff; text-decoration: none; border-radius: 5px; margin-top: 10px; }
+            .separator { height: 2px; background: linear-gradient(90deg, #10ff92, #7822ff); background-size: 200% 200%; animation: gradientPulse 4s ease infinite; margin: 20px 0; }
+            @keyframes gradientPulse { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+            .footer { text-align: center; margin-top: 20px; color: #10ff92; }
+            .footer a { color: #10ff92; text-decoration: none; }
+            @media (max-width: 600px) { .container { width: 95%; } }
+          </style>
+        </head>
+        <body>
+          <img src="https://trueconext.com/assets/TheBriefs.png" alt="Header Image" class="header-img">
+          <div class="container">
+            <h2 style="color: #10ff92;">${campaignName}</h2>
+            ${document.getElementById('previewContent').innerHTML}
+          </div>
+          <div class="footer">
+            © 2025 TrueConext. All rights reserved. <a href="https://trueconext.com/Privacy.html">Privacy Policy</a>
+          </div>
+        </body>
+        </html>
       `;
       const blob = new Blob([htmlContent], { type: 'text/html' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const url = window.URL.createObjectURL(blob);
+      const a = document.getElementById('downloadLink');
       a.href = url;
-      a.download = `${briefName.replace(/\s+/g, '_')}.html`;
-      a.click();
-      URL.revokeObjectURL(url);
-    });
+      a.download = `${campaignName || 'brief'}.html`;
+    }
   </script>
-</body>
-</html>
