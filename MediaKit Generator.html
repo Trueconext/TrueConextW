@@ -239,7 +239,7 @@
           <button type="button" onclick="removeField('contactme-1')">Remove</button>
         </div>
         <label for="contactme-1-link">Link</label>
-        <input type="text" id="contactme-1-link" placeholder="mailto:example@email.com" oninput="updatePreview()">
+        <input type="text" id="contactme-1-link" placeholder="mailto:example@trueconext.com" oninput="updatePreview()">
       </div>
     </div>
     
@@ -276,7 +276,7 @@
             <button type="button" onclick="removeField('${fieldId}')">Remove</button>
           </div>
           <label for="${fieldId}-link">Link</label>
-          <input type="text" id="${fieldId}-link" placeholder="https://${type === 'contactme' ? 'mailto:example@email.com' : `${type}.com/username`}" oninput="updatePreview()">
+          <input type="text" id="${fieldId}-link" placeholder="https://${type === 'contactme' ? 'mailto:example@trueconext.com' : `${type}.com/username`}" oninput="updatePreview()">
         </div>`;
       document.getElementById('dynamicFields').insertAdjacentHTML('beforeend', fieldHtml);
       updatePreview();
