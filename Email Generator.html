@@ -1,0 +1,266 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Email Template Generator</title>
+</head>
+<body style="margin:0; padding:0; background-color:#2d2d2d; font-family:Arial, sans-serif;">
+  <div style="text-align:center; padding:0;">
+    <img 
+      src="https://trueconext.com/assets/MailBanner.png" 
+      alt="True Conext Banner"
+      style="display:block; width:100%; max-width:600px; height:auto; margin:0 auto;"
+    />
+  </div>
+  <div style="max-width:600px; margin:30px auto; padding:20px; background-color:#1e1e1e; border-radius:10px; color:#ffffff;">
+    <h1 style="font-size:24px; font-weight:bold; text-align:center; margin-bottom:24px; color:#10ff92;">Email Template Generator</h1>
+    
+    <div style="margin-bottom:16px;">
+      <label for="subject" style="display:block; font-size:14px; font-weight:medium; color:#aaaaaa;">Title</label>
+      <input type="text" id="subject" style="margin-top:4px; padding:8px; width:100%; border:1px solid #aaaaaa; border-radius:4px; background-color:#2d2d2d; color:#ffffff;" placeholder="e.g., Welcome to True Conext" oninput="updatePreview()">
+    </div>
+    
+    <div id="dynamicFields" style="margin-bottom:16px;">
+      <!-- Initial message field -->
+      <div id="message-1" style="margin-bottom:16px; padding:10px; border:1px solid #aaaaaa; border-radius:4px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:14px; color:#aaaaaa;">Message 1</span>
+          <button type="button" onclick="removeField('message-1')" style="background-color:#ff4444; color:#ffffff; padding:4px 8px; border-radius:4px; border:none; font-size:12px; cursor:pointer;">Remove</button>
+        </div>
+        <label for="message-1-text" style="display:block; font-size:14px; font-weight:medium; color:#aaaaaa; margin-top:8px;">Message Body</label>
+        <textarea id="message-1-text" rows="8" style="margin-top:4px; padding:8px; width:100%; border:1px solid #aaaaaa; border-radius:4px; background-color:#2d2d2d; color:#ffffff;" placeholder="Enter your message here..." oninput="updatePreview()"></textarea>
+      </div>
+    </div>
+    
+    <div style="margin-bottom:16px;">
+      <label for="goodbye" style="display:block; font-size:14px; font-weight:medium; color:#aaaaaa;">Goodbye Message</label>
+      <textarea id="goodbye" rows="3" style="margin-top:4px; padding:8px; width:100%; border:1px solid #aaaaaa; border-radius:4px; background-color:#2d2d2d; color:#ffffff;" placeholder="e.g., Best,\nGustavo\non behalf of True Conext" oninput="updatePreview()"></textarea>
+    </div>
+    
+    <div style="margin-bottom:16px;">
+      <button type="button" onclick="addMessageField()" style="background-color:#7822ff; color:#ffffff; padding:8px 16px; border-radius:4px; border:none; font-size:14px; cursor:pointer;">+ Add Message</button>
+      <button type="button" onclick="addButtonField()" style="background-color:#7822ff; color:#ffffff; padding:8px 16px; border-radius:4px; border:none; font-size:14px; cursor:pointer; margin-left:8px;">+ Add Download Button</button>
+      <button type="button" onclick="addSeparatorField()" style="background-color:#7822ff; color:#ffffff; padding:8px 16px; border-radius:4px; border:none; font-size:14px; cursor:pointer; margin-left:8px;">+ Add Separator Line</button>
+    </div>
+    
+    <button onclick="generateEmail()" style="width:100%; background-color:#7822ff; color:#ffffff; padding:8px; border-radius:4px; border:none; font-size:16px; cursor:pointer;">Generate & Download Email</button>
+    
+    <h2 style="font-size:20px; font-weight:bold; margin-top:24px; margin-bottom:16px; color:#10ff92;">Email Preview</h2>
+    <iframe id="preview" style="width:100%; height:500px; border:1px solid #aaaaaa; border-radius:4px; background-color:#1e1e1e;"></iframe>
+  </div>
+
+  <script>
+    let messageCount = 1;
+    let buttonCount = 0;
+    let separatorCount = 0;
+
+    function addMessageField() {
+      messageCount++;
+      const fieldId = `message-${messageCount}`;
+      const fieldHtml = `
+        <div id="${fieldId}" style="margin-bottom:16px; padding:10px; border:1px solid #aaaaaa; border-radius:4px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:14px; color:#aaaaaa;">Message ${messageCount}</span>
+            <button type="button" onclick="removeField('${fieldId}')" style="background-color:#ff4444; color:#ffffff; padding:4px 8px; border-radius:4px; border:none; font-size:12px; cursor:pointer;">Remove</button>
+          </div>
+          <label for="${fieldId}-text" style="display:block; font-size:14px; font-weight:medium; color:#aaaaaa; margin-top:8px;">Message Body</label>
+          <textarea id="${fieldId}-text" rows="8" style="margin-top:4px; padding:8px; width:100%; border:1px solid #aaaaaa; border-radius:4px; background-color:#2d2d2d; color:#ffffff;" placeholder="Enter your message here..." oninput="updatePreview()"></textarea>
+        </div>`;
+      document.getElementById('dynamicFields').insertAdjacentHTML('beforeend', fieldHtml);
+      updatePreview();
+    }
+
+    function addButtonField() {
+      buttonCount++;
+      const fieldId = `button-${buttonCount}`;
+      const fieldHtml = `
+        <div id="${fieldId}" style="margin-bottom:16px; padding:10px; border:1px solid #aaaaaa; border-radius:4px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:14px; color:#aaaaaa;">Download Button ${buttonCount}</span>
+            <button type="button" onclick="removeField('${fieldId}')" style="background-color:#ff4444; color:#ffffff; padding:4px 8px; border-radius:4px; border:none; font-size:12px; cursor:pointer;">Remove</button>
+          </div>
+          <label for="buttonLabel-${buttonCount}" style="display:block; font-size:14px; font-weight:medium; color:#aaaaaa; margin-top:8px;">Button Label</label>
+          <input type="text" id="buttonLabel-${buttonCount}" style="margin-top:4px; padding:8px; width:100%; border:1px solid #aaaaaa; border-radius:4px; background-color:#2d2d2d; color:#ffffff;" placeholder="e.g., Download Campaign Brief" oninput="updatePreview()">
+          <label for="buttonLink-${buttonCount}" style="display:block; font-size:14px; font-weight:medium; color:#aaaaaa; margin-top:8px;">Button Link</label>
+          <input type="text" id="buttonLink-${buttonCount}" style="margin-top:4px; padding:8px; width:100%; border:1px solid #aaaaaa; border-radius:4px; background-color:#2d2d2d; color:#ffffff;" placeholder="e.g., https://example.com/brief" oninput="updatePreview()">
+        </div>`;
+      document.getElementById('dynamicFields').insertAdjacentHTML('beforeend', fieldHtml);
+      updatePreview();
+    }
+
+    function addSeparatorField() {
+      separatorCount++;
+      const fieldId = `separator-${separatorCount}`;
+      const fieldHtml = `
+        <div id="${fieldId}" style="margin-bottom:16px; padding:10px; border:1px solid #aaaaaa; border-radius:4px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:14px; color:#aaaaaa;">Separator Line ${separatorCount}</span>
+            <button type="button" onclick="removeField('${fieldId}')" style="background-color:#ff4444; color:#ffffff; padding:4px 8px; border-radius:4px; border:none; font-size:12px; cursor:pointer;">Remove</button>
+          </div>
+        </div>`;
+      document.getElementById('dynamicFields').insertAdjacentHTML('beforeend', fieldHtml);
+      updatePreview();
+    }
+
+    function removeField(fieldId) {
+      const field = document.getElementById(fieldId);
+      field.remove();
+      updatePreview();
+    }
+
+    function generateEmailContent() {
+      const subject = document.getElementById('subject').value || 'Title';
+      const goodbye = document.getElementById('goodbye').value;
+      
+      let content = '';
+      const dynamicFields = document.getElementById('dynamicFields').children;
+      for (let i = 0; i < dynamicFields.length; i++) {
+        const field = dynamicFields[i];
+        if (field.id.startsWith('message-')) {
+          const index = field.id.split('-')[1];
+          const message = document.getElementById(`message-${index}-text`).value;
+          if (message) {
+            const messageLines = message.split('\n').filter(line => line.trim() !== '');
+            const messageParagraphs = messageLines.map(line => `<p style="font-size:16px; line-height:1.5;">${line}</p>`).join('\n              ');
+            content += messageParagraphs;
+          }
+        } else if (field.id.startsWith('button-')) {
+          const index = field.id.split('-')[1];
+          const buttonLabel = document.getElementById(`buttonLabel-${index}`).value;
+          const buttonLink = document.getElementById(`buttonLink-${index}`).value;
+          if (buttonLabel && buttonLink) {
+            content += `
+              <p style="margin-top:20px; margin-bottom:20px;">
+                <a href="${buttonLink}" style="display:inline-block; background-color:#7822ff; color:#ffffff; padding:10px 20px; border-radius:4px; text-decoration:none; font-size:16px;">${buttonLabel}</a>
+              </p>`;
+          }
+        } else if (field.id.startsWith('separator-')) {
+          content += `
+              <hr style="border:0; height:1px; border-image:linear-gradient(to right, #10ff92, #7822ff) 1; margin:3px 0; width:100%;" />`;
+        }
+      }
+
+      if (goodbye) {
+        const goodbyeLines = goodbye.split('\n').filter(line => line.trim() !== '');
+        const goodbyeParagraphs = goodbyeLines.map(line => `<p style="color:#7822ff; font-weight:bold; font-size:16px;">${line}</p>`).join('\n              ');
+        content += `\n              ${goodbyeParagraphs}`;
+      }
+
+      return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>${subject}</title>
+</head>
+<body style="margin:0; padding:0; background-color:#2d2d2d;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+      <td align="center">
+        <!-- Container -->
+        <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color:#1e1e1e; margin-top:30px; border-radius:10px; font-family:Arial, sans-serif; color:#ffffff;">
+          
+          <!-- Banner -->
+          <tr>
+            <td style="padding:0; text-align:center;">
+              <img 
+                src="https://trueconext.com/assets/MailBanner.png" 
+                alt="True Conext"
+                style="display:block; width:100%; max-width:600px; height:auto; border-top-left-radius:10px; border-top-right-radius:10px;"
+              />
+            </td>
+          </tr>
+          
+          <!-- Body -->
+          <tr>
+            <td style="padding:30px;">
+              <h2 style="color:#10ff92; margin-top:0;">${subject}</h2>
+
+              ${content}
+
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background-color:#2d2d2d; padding:20px; text-align:center; font-size:12px; color:#aaaaaa;">
+              © 2025 True Conext. All rights reserved.<br/>
+              <a href="#" style="color:#aaaaaa; text-decoration:underline;">Privacy Policy</a>
+            </td>
+          </tr>
+
+        </table>
+        <!-- End Container -->
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+    }
+
+    function generateEmail() {
+      const htmlContent = generateEmailContent();
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'email_template.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function updatePreview() {
+      const htmlContent = generateEmailContent();
+      const iframe = document.getElementById('preview');
+      iframe.contentDocument.open();
+      iframe.contentDocument.write(htmlContent);
+      iframe.contentDocument.close();
+    }
+
+    // Initial preview render
+    window.onload = updatePreview;
+  </script>
+</body>
+</html>
