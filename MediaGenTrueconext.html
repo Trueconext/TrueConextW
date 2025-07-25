@@ -1,0 +1,536 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trueconext Media Kit Generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    body { margin: 0; padding: 0; background-color: #23252a; font-family: 'Outfit', sans-serif; }
+    .content { padding: 20px; }
+    h1 { font-size: 24px; font-weight: 600; text-align: center; color: #10ff92; margin-bottom: 20px; }
+    .field { margin: 0 10px 16px; } /* Added slight margin to fields */
+    label { display: block; font-size: 14px; font-weight: 400; color: #aaaaaa; }
+    input[type="text"], select { margin-top: 4px; padding: 8px; width: 100%; border: 1px solid #aaaaaa; border-radius: 4px; background-color: #2e3135; color: #ffffff; font-family: 'Outfit', sans-serif; }
+    input[type="color"] { width: 50px; height: 50px; padding: 0; border: none; cursor: pointer; }
+    button { background-color: #7822ff; color: #ffffff; padding: 1% 2%; border-radius: 4px; border: none; font-size: 14px; cursor: pointer; font-family: 'Outfit', sans-serif; font-weight: 500; }
+    button:hover { background-color: #10ff92; }
+    #dynamicFields div { margin-bottom: 16px; padding: 10px; border: 1px solid #aaaaaa; border-radius: 4px; }
+    #dynamicFields div button { background-color: #4482ff; padding: 4px 8px; font-size: 12px; }
+    #preview { width: 100%; height: 500px; border: 1px solid #aaaaaa; border-radius: 4px; background-color: #2e3135; margin-top: 20px; }
+    .link-button { display: inline-block; width: 80%; padding: 15px 25px; margin: 10px auto; text-align: center; text-decoration: none; color: #ffffff; background: #7822ff; border-radius: 30px; transition: all 0.4s ease; position: relative; overflow: hidden; font-size: 16px; font-family: 'Outfit', sans-serif; font-weight: 500; border: 2px solid rgba(45, 45, 45, 0.1); box-shadow: 0 2px 4px #151216; }
+    .link-button i { margin-right: 10px; }
+    .link-button:hover { transform: scale(1.1) translateY(-2px); box-shadow: 0 5px 15px #151216; background-color: #10ff92; }
+    .link-button::before { content: ''; position: absolute; top: 50%; left: 50%; width: 0; height: 0; background: rgba(16, 255, 146, 0.3); border-radius: 50%; transform: translate(-50%, -50%); transition: width 0.8s ease, height 0.8s ease; }
+    .link-button:hover::before { width: 200%; height: 200%; }
+    .highlighted { background-color: #10ff92 !important; font-weight: bold; }
+    .creator-pic { width: 100px; height: 100px; border-radius: 50%; overflow: hidden; margin: 0 auto 10px; }
+    .creator-pic img { width: 100%; height: 100%; object-fit: cover; }
+    .creator-name { text-align: center; font-size: 20px; font-weight: 600; color: #10ff92; margin-bottom: 5px; font-family: 'Outfit', sans-serif; }
+    .creator-subtitle, .creator-subtitle-additional { text-align: center; font-size: 14px; color: #aaaaaa; margin-bottom: 20px; font-family: 'Outfit', sans-serif; }
+    .footer { text-align: center; font-size: 12px; color: #9792a1; margin-top: 20px; padding-top: 10px; border-top: 1px solid #aaaaaa; font-family: 'Outfit', sans-serif; }
+    .footer a { color: #aaaaaa; text-decoration: underline; }
+    /* Hide all scrollbars but keep functionality */
+    body::-webkit-scrollbar,
+    #preview::-webkit-scrollbar,
+    .stats-container::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    body::-webkit-scrollbar-track,
+    #preview::-webkit-scrollbar-track,
+    .stats-container::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    body::-webkit-scrollbar-thumb,
+    #preview::-webkit-scrollbar-thumb,
+    .stats-container::-webkit-scrollbar-thumb {
+      background: transparent;
+      border-radius: 4px;
+    }
+    body::-webkit-scrollbar-thumb:hover,
+    #preview::-webkit-scrollbar-thumb:hover,
+    .stats-container::-webkit-scrollbar-thumb:hover {
+      background: transparent;
+    }
+    body {
+      -ms-overflow-style: none; /* IE and Edge */
+      scrollbar-width: none; /* Firefox */
+    }
+    #preview {
+      -ms-overflow-style: none; /* IE and Edge */
+      scrollbar-width: none; /* Firefox */
+    }
+    .stats-container {
+      -ms-overflow-style: none; /* IE and Edge */
+      scrollbar-width: none; /* Firefox */
+    }
+    /* Stats Section */
+    .stats-container { display: flex; justify-content: center; margin: 20px 0; background-color: #2e3135; }
+    .total-following, .total-reach, .engagement-rate { text-align: center; flex: 1; margin: 0 5px; padding: 10px; border-radius: 10px; animation: pulse 2s infinite; border: 2px solid #aaaaaa; }
+    .total-following span, .total-reach span, .engagement-rate span { font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 700; color: #aaaaaa; display: block; margin-bottom: 5px; }
+    .total-following input, .total-reach input, .engagement-rate input { font-size: 30px; font-weight: 700; color: #10ff92; background: none; border: none; width: 100px; text-align: center; }
+    .engagement-rate input { width: 80px; } /* Adjusted for percentage format */
+    .total-following input:focus, .total-reach input:focus, .engagement-rate input:focus { outline: none; }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    .color-editor, .scrollbar-editor { display: flex; flex-wrap: wrap; gap: 10px; }
+    .color-editor .field, .scrollbar-editor .field { flex: 1 1 20%; min-width: 100px; }
+  </style>
+</head>
+<body>
+  <div class="content">
+    <h1>Trueconext Media Kit Generator</h1>
+    <div class="creator-pic">
+      <img id="creator-pic-input" src="https://via.placeholder.com/100" alt="Creator Picture">
+    </div>
+    <div class="field">
+      <label for="creator-pic">Creator Picture URL</label>
+      <input type="text" id="creator-pic" placeholder="https://example.com/picture.jpg" oninput="updatePreview()">
+    </div>
+    <div class="field">
+      <label for="creator-name">Creator Name</label>
+      <input type="text" id="creator-name" placeholder="e.g., Gustavo" oninput="updatePreview()">
+    </div>
+    <div class="field">
+      <label for="creator-subtitle">Creator Subtitle</label>
+      <input type="text" id="creator-subtitle" placeholder="e.g., Content Creator" oninput="updatePreview()">
+    </div>
+    <div class="field">
+      <label for="creator-subtitle-additional">Additional Subtitle</label>
+      <input type="text" id="creator-subtitle-additional" placeholder="e.g., Passionate Gamer" oninput="updatePreview()">
+    </div>
+    <div class="field">
+      <label for="stats-position">Stats Position</label>
+      <select id="stats-position" onchange="updatePreview()">
+        <option value="above">Above Links</option>
+        <option value="below">Below Links</option>
+      </select>
+    </div>
+    <div class="stats-container">
+      <div class="field total-following">
+        <label for="total-following">Total Following</label>
+        <input type="number" id="total-following" placeholder="0" oninput="updatePreview()" value="">
+      </div>
+      <div class="field total-reach">
+        <label for="total-reach">Montly Impressions</label>
+        <input type="number" id="total-reach" placeholder="0" oninput="updatePreview()" value="">
+      </div>
+      <div class="field engagement-rate">
+        <label for="engagement-rate">Engagement Rate</label>
+        <input type="number" id="engagement-rate" placeholder="0" oninput="updatePreview()" value="" step="0.1">%
+      </div>
+    </div>
+    
+    <div class="field">
+      <label>Color Editor</label>
+      <div class="color-editor">
+        <div class="field">
+          <label for="button-bg">Button BG</label>
+          <input type="color" id="button-bg" value="#7822ff" oninput="updatePreview()">
+        </div>
+        <div class="field">
+          <label for="button-hover">Button Hover</label>
+          <input type="color" id="button-hover" value="#10ff92" oninput="updatePreview()">
+        </div>
+        <div class="field">
+          <label for="profile-pic-border">Profile Picture Border</label>
+          <input type="color" id="profile-pic-border" value="#7822ff" oninput="updatePreview()">
+        </div>
+        <div class="field">
+          <label for="buttons-border">Buttons Border</label>
+          <input type="color" id="buttons-border" value="#aaaaaa" oninput="updatePreview()">
+        </div>
+        <div class="field">
+          <label for="background-color">Background</label>
+          <input type="color" id="background-color" value="#23252a" oninput="updatePreview()">
+        </div>
+        <div class="field">
+          <label for="text-color">Text</label>
+          <input type="color" id="text-color" value="#ffffff" oninput="updatePreview()">
+        </div>
+        <div class="field">
+          <label for="stats-bg">Stats BG</label>
+          <input type="color" id="stats-bg" value="#2e3135" oninput="updatePreview()">
+        </div>
+        <div class="field">
+          <label for="first-button">First Button</label>
+          <input type="color" id="first-button" value="#ff00ff" oninput="updatePreview()">
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Scrollbar Editor</label>
+      <div class="scrollbar-editor">
+        <div class="field">
+          <label for="scroll-thumb">Thumb</label>
+          <input type="color" id="scroll-thumb" value="#ff9999" oninput="updatePreview()">
+        </div>
+        <div class="field">
+          <label for="scroll-track">Track</label>
+          <input type="color" id="scroll-track" value="#2e3135" oninput="updatePreview()">
+        </div>
+        <div class="field">
+          <label for="scroll-width">Width (px)</label>
+          <input type="number" id="scroll-width" value="10" min="5" max="200" oninput="updatePreview()">
+        </div>
+      </div>
+    </div>
+
+    <div id="dynamicFields">
+      <!-- Initial fields -->
+      <div id="instagram-1" class="link-field">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:14px; color:#aaaaaa;">Instagram 1</span>
+          <button type="button" onclick="removeField('instagram-1')">Remove</button>
+        </div>
+        <label for="instagram-1-link">Link</label>
+        <input type="text" id="instagram-1-link" placeholder="https://instagram.com/username" oninput="updatePreview()">
+      </div>
+      <div id="tiktok-1" class="link-field">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:14px; color:#aaaaaa;">TikTok 1</span>
+          <button type="button" onclick="removeField('tiktok-1')">Remove</button>
+        </div>
+        <label for="tiktok-1-link">Link</label>
+        <input type="text" id="tiktok-1-link" placeholder="https://tiktok.com/@username" oninput="updatePreview()">
+      </div>
+      <div id="twitch-1" class="link-field">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:14px; color:#aaaaaa;">Twitch 1</span>
+          <button type="button" onclick="removeField('twitch-1')">Remove</button>
+        </div>
+        <label for="twitch-1-link">Link</label>
+        <input type="text" id="twitch-1-link" placeholder="https://twitch.tv/username" oninput="updatePreview()">
+      </div>
+      <div id="kick-1" class="link-field">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:14px; color:#aaaaaa;">Kick 1</span>
+          <button type="button" onclick="removeField('kick-1')">Remove</button>
+        </div>
+        <label for="kick-1-link">Link</label>
+        <input type="text" id="kick-1-link" placeholder="https://kick.com/username" oninput="updatePreview()">
+      </div>
+      <div id="youtube-1" class="link-field">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:14px; color:#aaaaaa;">YouTube 1</span>
+          <button type="button" onclick="removeField('youtube-1')">Remove</button>
+        </div>
+        <label for="youtube-1-link">Link</label>
+        <input type="text" id="youtube-1-link" placeholder="https://youtube.com/@username" oninput="updatePreview()">
+      </div>
+      <div id="trovo-1" class="link-field">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:14px; color:#aaaaaa;">Trovo 1</span>
+          <button type="button" onclick="removeField('trovo-1')">Remove</button>
+        </div>
+        <label for="trovo-1-link">Link</label>
+        <input type="text" id="trovo-1-link" placeholder="https://trovo.live/username" oninput="updatePreview()">
+      </div>
+      <div id="x-1" class="link-field">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:14px; color:#aaaaaa;">X 1</span>
+          <button type="button" onclick="removeField('x-1')">Remove</button>
+        </div>
+        <label for="x-1-link">Link</label>
+        <input type="text" id="x-1-link" placeholder="https://x.com/username" oninput="updatePreview()">
+      </div>
+      <div id="facebook-1" class="link-field">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:14px; color:#aaaaaa;">Facebook 1</span>
+          <button type="button" onclick="removeField('facebook-1')">Remove</button>
+        </div>
+        <label for="facebook-1-link">Link</label>
+        <input type="text" id="facebook-1-link" placeholder="https://facebook.com/username" oninput="updatePreview()">
+      </div>
+      <div id="website-1" class="link-field">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:14px; color:#aaaaaa;">Website 1</span>
+          <button type="button" onclick="removeField('website-1')">Remove</button>
+        </div>
+        <label for="website-1-link">Link</label>
+        <input type="text" id="website-1-link" placeholder="https://yourwebsite.com" oninput="updatePreview()">
+      </div>
+      <div id="paypal-1" class="link-field">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:14px; color:#aaaaaa;">PayPal 1</span>
+          <button type="button" onclick="removeField('paypal-1')">Remove</button>
+        </div>
+        <label for="paypal-1-link">Link</label>
+        <input type="text" id="paypal-1-link" placeholder="https://paypal.me/username" oninput="updatePreview()">
+      </div>
+      <div id="contactme-1" class="link-field">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:14px; color:#aaaaaa;">Contact Me 1</span>
+          <button type="button" onclick="removeField('contactme-1')">Remove</button>
+        </div>
+        <label for="contactme-1-link">Link</label>
+        <input type="text" id="contactme-1-link" placeholder="mailto:example@email.com" oninput="updatePreview()">
+      </div>
+    </div>
+    
+    <div style="margin-bottom:16px;">
+      <button type="button" onclick="addLinkField('instagram')">+ Add Instagram</button>
+      <button type="button" onclick="addLinkField('tiktok')" style="margin-left:8px;">+ Add TikTok</button>
+      <button type="button" onclick="addLinkField('twitch')" style="margin-left:8px;">+ Add Twitch</button>
+      <button type="button" onclick="addLinkField('kick')" style="margin-left:8px;">+ Add Kick</button>
+      <button type="button" onclick="addLinkField('youtube')" style="margin-left:8px;">+ Add YouTube</button>
+      <button type="button" onclick="addLinkField('trovo')" style="margin-left:8px;">+ Add Trovo</button>
+      <button type="button" onclick="addLinkField('x')" style="margin-left:8px;">+ Add X</button>
+      <button type="button" onclick="addLinkField('facebook')" style="margin-left:8px;">+ Add Facebook</button>
+      <button type="button" onclick="addLinkField('website')" style="margin-left:8px;">+ Add Website</button>
+      <button type="button" onclick="addLinkField('paypal')" style="margin-left:8px;">+ Add PayPal</button>
+      <button type="button" onclick="addLinkField('contactme')" style="margin-left:8px;">+ Add Contact Me</button>
+    </div>
+    
+    <button onclick="generateEmail()" style="width:100%; margin-bottom:20px;">Generate & Download Truconext Media Kit</button>
+    
+    <h2 style="font-size:20px; font-weight:bold; color:#10ff92;">Live Preview</h2>
+    <iframe id="preview" style="width:100%; height:500px; border:1px solid #aaaaaa; border-radius:4px; background-color: #2e3135;"></iframe>
+  </div>
+
+  <script>
+    let linkCounters = { instagram: 1, tiktok: 1, twitch: 1, kick: 1, youtube: 1, trovo: 1, x: 1, facebook: 1, website: 1, paypal: 1, contactme: 1 };
+
+    function addLinkField(type) {
+      const count = ++linkCounters[type];
+      const fieldId = `${type}-${count}`;
+      const fieldHtml = `
+        <div id="${fieldId}" class="link-field">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:14px; color:#aaaaaa;">${type === 'contactme' ? 'Contact Me' : type.charAt(0).toUpperCase() + type.slice(1)} ${count}</span>
+            <button type="button" onclick="removeField('${fieldId}')">Remove</button>
+          </div>
+          <label for="${fieldId}-link">Link</label>
+          <input type="text" id="${fieldId}-link" placeholder="https://${type === 'contactme' ? 'mailto:example@email.com' : `${type}.com/username`}" oninput="updatePreview()">
+        </div>`;
+      document.getElementById('dynamicFields').insertAdjacentHTML('beforeend', fieldHtml);
+      updatePreview();
+    }
+
+    function removeField(fieldId) {
+      const field = document.getElementById(fieldId);
+      const type = fieldId.split('-')[0];
+      linkCounters[type]--;
+      field.remove();
+      updatePreview();
+    }
+
+    function generateEmailContent() {
+      const highlight = document.getElementById('highlight') ? document.getElementById('highlight').value : '';
+      const creatorPic = document.getElementById('creator-pic') ? document.getElementById('creator-pic').value : 'https://via.placeholder.com/100';
+      const creatorName = document.getElementById('creator-name') ? document.getElementById('creator-name').value : '';
+      const creatorSubtitle = document.getElementById('creator-subtitle') ? document.getElementById('creator-subtitle').value : '';
+      const creatorSubtitleAdditional = document.getElementById('creator-subtitle-additional') ? document.getElementById('creator-subtitle-additional').value : '';
+      const statsPosition = document.getElementById('stats-position') ? document.getElementById('stats-position').value : 'above';
+      const totalFollowing = document.getElementById('total-following') ? document.getElementById('total-following').value : '';
+      const totalReach = document.getElementById('total-reach') ? document.getElementById('total-reach').value : '';
+      const engagementRate = document.getElementById('engagement-rate') ? document.getElementById('engagement-rate').value : '';
+      const buttonBg = document.getElementById('button-bg') ? document.getElementById('button-bg').value : '#7822ff';
+      const buttonHover = document.getElementById('button-hover') ? document.getElementById('button-hover').value : '#10ff92';
+      const profilePicBorder = document.getElementById('profile-pic-border') ? document.getElementById('profile-pic-border').value : '#7822ff';
+      const buttonsBorder = document.getElementById('buttons-border') ? document.getElementById('buttons-border').value : '#aaaaaa';
+      const backgroundColor = document.getElementById('background-color') ? document.getElementById('background-color').value : '#23252a';
+      const textColor = document.getElementById('text-color') ? document.getElementById('text-color').value : '#ffffff';
+      const statsBg = document.getElementById('stats-bg') ? document.getElementById('stats-bg').value : '#2e3135';
+      const firstButtonColor = document.getElementById('first-button') ? document.getElementById('first-button').value : '#ff00ff';
+      const scrollThumb = document.getElementById('scroll-thumb') ? document.getElementById('scroll-thumb').value : '#ff9999';
+      const scrollTrack = document.getElementById('scroll-track') ? document.getElementById('scroll-track').value : '#2e3135';
+      const scrollWidth = document.getElementById('scroll-width') ? document.getElementById('scroll-width').value : '10';
+      let content = `<div style="text-align:center; padding:20px; overflow-y: auto; max-height: 90vh;">
+        <div class="background-pulse"></div>
+        <div class="creator-pic" style="border: 3px solid ${profilePicBorder}"><img src="${creatorPic}" alt="Creator Picture"></div>`;
+      if (creatorName) content += `<div class="creator-name" style="color: ${textColor};">${creatorName}</div>`;
+      if (creatorSubtitle) content += `<div class="creator-subtitle" style="color: ${textColor};">${creatorSubtitle}</div>`;
+      if (creatorSubtitleAdditional) content += `<div class="creator-subtitle-additional" style="color: ${textColor};">${creatorSubtitleAdditional}</div>`;
+      if (statsPosition === 'above' && (totalFollowing || totalReach || engagementRate)) {
+        content += `<div class="stats-container" style="background-color: ${statsBg};">`;
+        if (totalFollowing) content += `<div class="total-following" style="border: 2px solid ${buttonsBorder};"><span style="font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 700; color: ${textColor};">Total Following</span><input type="number" value="${totalFollowing}" readonly style="font-size: 30px; font-weight: 700; color: ${textColor}; background: none; border: none; width: 150px; text-align: center;"></div>`;
+        if (totalReach) content += `<div class="total-reach" style="border: 2px solid ${buttonsBorder};"><span style="font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 700; color: ${textColor};">Monthly Impressions</span><input type="number" value="${totalReach}" readonly style="font-size: 30px; font-weight: 700; color: ${textColor}; background: none; border: none; width: 100px; text-align: center;"></div>`;
+        if (engagementRate) content += `<div class="engagement-rate" style="border: 2px solid ${buttonsBorder};"><span style="font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 700; color: ${textColor};">Engagement Rate</span><input type="number" value="${engagementRate}" readonly style="font-size: 30px; font-weight: 700; color: ${textColor}; background: none; border: none; width: 80px; text-align: center;">%</div>`;
+        content += '</div>';
+      }
+      const platforms = {
+        'instagram': 'fab fa-instagram',
+        'tiktok': 'fab fa-tiktok',
+        'twitch': 'fab fa-twitch',
+        'kick': 'fas fa-gamepad',
+        'youtube': 'fab fa-youtube',
+        'trovo': 'fas fa-video',
+        'x': 'fab fa-x-twitter',
+        'facebook': 'fab fa-facebook-f',
+        'website': 'fas fa-globe',
+        'paypal': 'fab fa-paypal',
+        'contactme': 'fas fa-envelope'
+      };
+      content += '<div class="links-container">';
+      let isFirst = true;
+      for (let platform in platforms) {
+        for (let i = 1; i <= linkCounters[platform]; i++) {
+          const linkId = `${platform}-${i}-link`;
+          const link = document.getElementById(linkId) ? document.getElementById(linkId).value : '';
+          if (link) {
+            const isHighlighted = highlight === platform && i === 1;
+            const buttonStyle = isFirst ? `background-color: ${firstButtonColor}; color: ${textColor}; border-color: ${buttonsBorder}; filter: drop-shadow(0 0 10px ${firstButtonColor});` : `background-color: ${buttonBg}; color: ${textColor}; border-color: ${buttonsBorder};`;
+            content += `<a href="${link}" class="link-button" ${isHighlighted ? 'class="link-button highlighted"' : 'class="link-button"'} style="${buttonStyle}">
+              <i class="${platforms[platform]}" style="color: ${textColor};"></i>${platform === 'contactme' ? 'Contact Me' : platform.charAt(0).toUpperCase() + platform.slice(1)}
+            </a>`;
+            if (isFirst) isFirst = false;
+          }
+        }
+      }
+      content += '</div>';
+      if (statsPosition === 'below' && (totalFollowing || totalReach || engagementRate)) {
+        content += `<div class="stats-container" style="background-color: ${statsBg};">`;
+        if (totalFollowing) content += `<div class="total-following" style="border: 2px solid ${buttonsBorder};"><span style="font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 700; color: ${textColor};">Total Following</span><input type="number" value="${totalFollowing}" readonly style="font-size: 30px; font-weight: 700; color: ${textColor}; background: none; border: none; width: 100px; text-align: center;"></div>`;
+        if (totalReach) content += `<div class="total-reach" style="border: 2px solid ${buttonsBorder};"><span style="font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 700; color: ${textColor};">Monthly Impressions</span><input type="number" value="${totalReach}" readonly style="font-size: 30px; font-weight: 700; color: ${textColor}; background: none; border: none; width: 100px; text-align: center;"></div>`;
+        if (engagementRate) content += `<div class="engagement-rate" style="border: 2px solid ${buttonsBorder};"><span style="font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 700; color: ${textColor};">Engagement Rate</span><input type="number" value="${engagementRate}" readonly style="font-size: 30px; font-weight: 700; color: ${textColor}; background: none; border: none; width: 80px; text-align: center;">%</div>`;
+        content += '</div>';
+      }
+      content += `<div class="footer" style="color: ${textColor}; border-top-color: ${buttonsBorder};">© 2025 True Conext. All rights reserved.<br><a href="#" style="color: ${textColor};">Privacy Policy</a></div>`;
+      return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Truconext Media Kit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: ${backgroundColor};
+      overflow-y: auto;
+      position: relative;
+      font-family: 'Outfit', sans-serif;
+    }
+    .content { padding: 20px; }
+    .background-pulse {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(45deg, rgba(30, 30, 30, 0.05), rgba(30, 30, 30, 0.2));
+      animation: pulse 10s infinite ease-in-out;
+      pointer-events: none;
+      z-index: -1;
+    }
+    @keyframes pulse {
+      0% { opacity: 0.05; }
+      50% { opacity: 0.2; }
+      100% { opacity: 0.05; }
+    }
+    .links-container { margin: 20px 0; }
+    .link-button { display: inline-block; width: 80%; padding: 15px 25px; margin: 10px auto; text-align: center; text-decoration: none; color: ${textColor}; background: ${buttonBg}; border-radius: 30px; transition: all 0.4s ease; position: relative; overflow: hidden; font-size: 16px; font-family: 'Outfit', sans-serif; font-weight: 500; border: 2px solid ${buttonsBorder}; box-shadow: 0 2px 4px #151216; }
+    .link-button i { margin-right: 10px; }
+    .link-button:hover { transform: scale(1.1) translateY(-2px); box-shadow: 0 5px 15px #151216; background-color: ${buttonHover}; }
+    .link-button::before { content: ''; position: absolute; top: 50%; left: 50%; width: 0; height: 0; background: rgba(16, 255, 146, 0.3); border-radius: 50%; transform: translate(-50%, -50%); transition: width 0.8s ease, height 0.8s ease; }
+    .link-button:hover::before { width: 200%; height: 200%; }
+    .highlighted { background-color: ${buttonHover} !important; font-weight: bold; }
+    .creator-pic { width: 100px; height: 100px; border-radius: 50%; overflow: hidden; margin: 0 auto 10px; border: 3px solid ${profilePicBorder}; }
+    .creator-pic img { width: 100%; height: 100%; object-fit: cover; }
+    .creator-name { text-align: center; font-size: 20px; font-weight: 600; color: ${textColor}; margin-bottom: 5px; font-family: 'Outfit', sans-serif; }
+    .creator-subtitle, .creator-subtitle-additional { text-align: center; font-size: 14px; color: ${textColor}; margin-bottom: 20px; font-family: 'Outfit', sans-serif; }
+    .stats-container { display: flex; justify-content: center; margin: 20px 0; background-color: ${statsBg}; }
+    .total-following, .total-reach, .engagement-rate { text-align: center; flex: 1; margin: 0 5px; padding: 10px; border-radius: 10px; animation: pulse 2s infinite; border: 2px solid ${buttonsBorder}; }
+    .total-following span, .total-reach span, .engagement-rate span { font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 700; color: ${textColor}; display: block; margin-bottom: 5px; }
+    .total-following input, .total-reach input, .engagement-rate input { font-size: 30px; font-weight: 700; color: ${textColor}; background: none; border: none; width: 100px; text-align: center; }
+    .engagement-rate input { width: 80px; }
+    .total-following input:focus, .total-reach input:focus, .engagement-rate input:focus { outline: none; }
+    .footer { text-align: center; font-size: 12px; color: ${textColor}; margin-top: 20px; padding-top: 10px; border-top: 1px solid ${buttonsBorder}; font-family: 'Outfit', sans-serif; }
+    .footer a { color: ${textColor}; text-decoration: underline; }
+    body::-webkit-scrollbar {
+      display: none;
+    }
+    body {
+      -ms-overflow-style: none; /* IE and Edge */
+      scrollbar-width: none; /* Firefox */
+    }
+  </style>
+</head>
+<body>
+  <div class="content">
+    <div class="background-pulse"></div>
+    ${content}
+  </div>
+</body>
+</html>`;
+    }
+
+    function generateEmail() {
+      const htmlContent = generateEmailContent();
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'truconext_media_kit.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function updatePreview() {
+      const htmlContent = generateEmailContent();
+      const iframe = document.getElementById('preview');
+      if (iframe) {
+        iframe.contentDocument.open();
+        iframe.contentDocument.write(htmlContent);
+        iframe.contentDocument.close();
+      }
+    }
+
+    window.onload = updatePreview;
+  </script>
+</body>
+</html>
