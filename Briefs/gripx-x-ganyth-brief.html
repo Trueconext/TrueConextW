@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gripx x Ganyth - Campaign Brief</title>
+  <meta name="description" content="Campaign brief for Gripx x Ganyth">
+  
+  <style>
+  * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+  }
+  
+  body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #2d2d2d 0%, #181819 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 20px;
+  }
+  
+  .brief-container {
+      position: relative;
+      width: 100%;
+      max-width: 800px;
+      height: 1350px;
+      background: linear-gradient(135deg, #1d222a 0%, #1a1627 100%);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+      margin: 0 auto;
+  }
+  
+  .footer {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      color: rgba(0, 0, 0, 0.4);
+      font-size: 12px;
+      font-weight: 500;
+  }
+  
+  .footer a {
+      color: inherit;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: color 0.2s ease;
+  }
+  
+  .footer a:hover {
+      color: rgba(0, 0, 0, 0.6);
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+      body {
+          padding: 10px;
+      }
+      
+      .brief-container {
+          width: 100vw;
+          max-width: 100vw;
+          height: auto;
+          min-height: 100vh;
+          border-radius: 10px;
+      }
+      
+      .brief-container > div:not(.footer) {
+          font-size: 0.9em !important;
+      }
+      
+      .footer {
+          bottom: 10px;
+          right: 10px;
+          font-size: 10px;
+      }
+      
+      /* Add spacing between elements on mobile */
+      
+      .mobile-element-0 {
+          top: calc(7.4074074074074066% + 0vh) !important;
+          margin-bottom: 4vh !important;
+      }
+      .mobile-element-1 {
+          top: calc(17.77777777777778% + 8vh) !important;
+          margin-bottom: 4vh !important;
+      }
+      .mobile-element-2 {
+          top: calc(28.888888888888886% + 16vh) !important;
+          margin-bottom: 4vh !important;
+      }
+      .mobile-element-3 {
+          top: calc(33.33333333333333% + 24vh) !important;
+          margin-bottom: 4vh !important;
+      }
+      .mobile-element-4 {
+          top: calc(47.40740740740741% + 32vh) !important;
+          margin-bottom: 4vh !important;
+      }
+      .mobile-element-5 {
+          top: calc(56.2962962962963% + 40vh) !important;
+          margin-bottom: 4vh !important;
+      }
+      .mobile-element-6 {
+          top: calc(60.74074074074074% + 48vh) !important;
+          margin-bottom: 4vh !important;
+      }
+      .mobile-element-7 {
+          top: calc(75.55555555555556% + 56vh) !important;
+          margin-bottom: 4vh !important;
+      }
+      .mobile-element-8 {
+          top: calc(78.51851851851852% + 64vh) !important;
+          margin-bottom: 4vh !important;
+      }
+      .mobile-element-9 {
+          top: calc(78.51851851851852% + 72vh) !important;
+          margin-bottom: 4vh !important;
+      }
+      .mobile-element-10 {
+          top: calc(83.7037037037037% + 80vh) !important;
+          margin-bottom: 4vh !important;
+      }
+      .mobile-element-11 {
+          top: calc(83.7037037037037% + 88vh) !important;
+          margin-bottom: 4vh !important;
+      }
+      .mobile-element-12 {
+          top: calc(23.703703703703706% + 96vh) !important;
+          margin-bottom: 4vh !important;
+      }
+  }
+  
+  @media (max-width: 480px) {
+      body {
+          padding: 5px;
+      }
+      
+      .brief-container {
+          width: 100vw;
+          max-width: 100vw;
+          min-height: 120vh;
+          border-radius: 8px;
+      }
+      
+      .brief-container > div:not(.footer) {
+          font-size: 0.8em !important;
+          padding: 8px !important;
+      }
+      
+      .footer {
+          bottom: 8px;
+          right: 8px;
+          font-size: 9px;
+      }
+      
+      .footer img {
+          width: 12px !important;
+          height: 12px !important;
+      }
+      
+      /* Increase spacing even more on small phones */
+      
+      .mobile-element-0 {
+          top: calc(7.4074074074074066% + 0vh) !important;
+          margin-bottom: 6vh !important;
+          left: 5% !important;
+          width: 90% !important;
+      }
+      .mobile-element-1 {
+          top: calc(17.77777777777778% + 12vh) !important;
+          margin-bottom: 6vh !important;
+          left: 5% !important;
+          width: 90% !important;
+      }
+      .mobile-element-2 {
+          top: calc(28.888888888888886% + 24vh) !important;
+          margin-bottom: 6vh !important;
+          left: 5% !important;
+          width: 90% !important;
+      }
+      .mobile-element-3 {
+          top: calc(33.33333333333333% + 36vh) !important;
+          margin-bottom: 6vh !important;
+          left: 5% !important;
+          width: 90% !important;
+      }
+      .mobile-element-4 {
+          top: calc(47.40740740740741% + 48vh) !important;
+          margin-bottom: 6vh !important;
+          left: 5% !important;
+          width: 90% !important;
+      }
+      .mobile-element-5 {
+          top: calc(56.2962962962963% + 60vh) !important;
+          margin-bottom: 6vh !important;
+          left: 5% !important;
+          width: 90% !important;
+      }
+      .mobile-element-6 {
+          top: calc(60.74074074074074% + 72vh) !important;
+          margin-bottom: 6vh !important;
+          left: 5% !important;
+          width: 90% !important;
+      }
+      .mobile-element-7 {
+          top: calc(75.55555555555556% + 84vh) !important;
+          margin-bottom: 6vh !important;
+          left: 5% !important;
+          width: 90% !important;
+      }
+      .mobile-element-8 {
+          top: calc(78.51851851851852% + 96vh) !important;
+          margin-bottom: 6vh !important;
+          left: 5% !important;
+          width: 90% !important;
+      }
+      .mobile-element-9 {
+          top: calc(78.51851851851852% + 108vh) !important;
+          margin-bottom: 6vh !important;
+          left: 5% !important;
+          width: 90% !important;
+      }
+      .mobile-element-10 {
+          top: calc(83.7037037037037% + 120vh) !important;
+          margin-bottom: 6vh !important;
+          left: 5% !important;
+          width: 90% !important;
+      }
+      .mobile-element-11 {
+          top: calc(83.7037037037037% + 132vh) !important;
+          margin-bottom: 6vh !important;
+          left: 5% !important;
+          width: 90% !important;
+      }
+      .mobile-element-12 {
+          top: calc(23.703703703703706% + 144vh) !important;
+          margin-bottom: 6vh !important;
+          left: 5% !important;
+          width: 90% !important;
+      }
+  }
+  
+  /* Ensure text doesn't overflow */
+  .brief-container * {
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      hyphens: auto;
+  }
+</style>
+</head>
+<body>
+<div class="brief-container">
+    
+    <div style="position: absolute; top: 20px; left: 20px; display: flex; align-items: center; gap: 12px; z-index: 1000;">
+      <img src="https://raw.githubusercontent.com/Trueconext/TrueConextW/refs/heads/main/Icon%20Only%20No%20Background.png" alt="TrueConext Logo" style="width: 32px; height: 32px; object-fit: contain;" />
+      <span style="font-size: 18px; font-weight: bold; color: #7822ff;">TrueConext</span>
+    </div>
+  
+    
+    <div class="mobile-element-0" style="
+    position: absolute;
+    left: 5%;
+    top: 7.4074074074074066%;
+    width: 90%;
+    height: 8.88888888888889%;
+    color: #ffffff;
+    font-size: clamp(21.599999999999998px, 2.25rem, 36px);
+    font-weight: bold;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    z-index: 0;
+    border-radius: 15px;
+    padding: 30px;
+    box-sizing: border-box;
+    background: #7822ff;
+   display: flex; align-items: center; justify-content: flex-start; word-wrap: break-word; overflow-wrap: break-word; hyphens: auto;">
+      GripX Gaming Triggers x Ganyth
+    </div>
+  
+    <div class="mobile-element-1" style="
+    position: absolute;
+    left: 5%;
+    top: 17.77777777777778%;
+    width: 81.25%;
+    height: 8.88888888888889%;
+    color: #10ff92;
+    font-size: clamp(19.2px, 2rem, 32px);
+    font-weight: bold;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    z-index: 1;
+    border-radius: 0px;
+    padding: 10px;
+    box-sizing: border-box;
+    
+   display: flex; align-items: flex-start; justify-content: flex-start; word-wrap: break-word; overflow-wrap: break-word; hyphens: auto;">
+      Tiktok video + Instagram Reel 400$
+    </div>
+  
+    <div class="mobile-element-2" style="
+    position: absolute;
+    left: 5%;
+    top: 28.888888888888886%;
+    width: 43.75%;
+    height: 3.7037037037037033%;
+    color: #8b5cf6;
+    font-size: clamp(14.399999999999999px, 1.5rem, 24px);
+    font-weight: bold;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    z-index: 2;
+    border-radius: 0px;
+    padding: 10px;
+    box-sizing: border-box;
+    
+   display: flex; align-items: flex-start; justify-content: flex-start; word-wrap: break-word; overflow-wrap: break-word; hyphens: auto;">
+      Video structure (60s):
+    </div>
+  
+    <div class="mobile-element-3" style="
+    position: absolute;
+    left: 5%;
+    top: 33.33333333333333%;
+    width: 85%;
+    height: 15.555555555555555%;
+    color: #ffffff;
+    font-size: clamp(10px, 1rem, 16px);
+    font-weight: normal;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    z-index: 3;
+    border-radius: 0px;
+    padding: 20px;
+    box-sizing: border-box;
+    
+   display: flex; align-items: flex-start; justify-content: flex-start; word-wrap: break-word; overflow-wrap: break-word; hyphens: auto;">
+      0–10s: Creative hook (epic kill clips, frustration then solution, or “the secret to 20 kills per match”).<br><br>10–35s: Product intro (design, usage, works with 90%+ smartphones, 5s setup, no lag, no bans, physical buttons with fast response).<br><br>Transition: Cut to creator’s own kill clips (8–10s).<br>
+    </div>
+  
+    <div class="mobile-element-4" style="
+    position: absolute;
+    left: 5%;
+    top: 47.40740740740741%;
+    width: 85%;
+    height: 7.4074074074074066%;
+    color: #10ff92;
+    font-size: clamp(10px, 1rem, 16px);
+    font-weight: bold;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    z-index: 5;
+    border-radius: 0px;
+    padding: 20px;
+    box-sizing: border-box;
+    
+   display: flex; align-items: flex-start; justify-content: flex-start; word-wrap: break-word; overflow-wrap: break-word; hyphens: auto;">
+      35–45s – CTA (must be word-for-word):<br>“Search gripX.top; there are multiple configurations of the product to choose from as needed, and you can also get free finger sleeves directly.”
+    </div>
+  
+    <div class="mobile-element-5" style="
+    position: absolute;
+    left: 5%;
+    top: 56.2962962962963%;
+    width: 50%;
+    height: 4.444444444444445%;
+    color: #ef4444;
+    font-size: clamp(19.2px, 2rem, 32px);
+    font-weight: bold;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    z-index: 5;
+    border-radius: 0px;
+    padding: 10px;
+    box-sizing: border-box;
+    
+   display: flex; align-items: flex-start; justify-content: flex-start; word-wrap: break-word; overflow-wrap: break-word; hyphens: auto;">
+      DO NOT DO:
+    </div>
+  
+    <div class="mobile-element-6" style="
+    position: absolute;
+    left: 6.25%;
+    top: 60.74074074074074%;
+    width: 85%;
+    height: 14.074074074074074%;
+    color: #ef4444;
+    font-size: clamp(10px, 1rem, 16px);
+    font-weight: bold;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    z-index: 6;
+    border-radius: 0px;
+    padding: 20px;
+    box-sizing: border-box;
+    
+   display: flex; align-items: flex-start; justify-content: flex-start; word-wrap: break-word; overflow-wrap: break-word; hyphens: auto;">
+      - Do not show the GripX Logo anywhere<br><br>- Do not put "GripX" anywhere in the title or description<br><br>- Don’t post any new videos within 24h after posting.<br><br>- Once posted, the video cannot be deleted.
+    </div>
+  
+      <div class="mobile-element-7" style="
+    position: absolute;
+    left: 5%;
+    top: 75.55555555555556%;
+    width: 85%;
+    height: 0.2962962962962963%;
+    color: #7822ff;
+    font-size: clamp(10px, 1rem, 16px);
+    font-weight: normal;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    z-index: 7;
+    border-radius: 0px;
+    padding: 10px;
+    box-sizing: border-box;
+    
+   height: 4px; background: #7822ff; width: 85%;">
+      </div>
+    
+    <div class="mobile-element-8" style="
+    position: absolute;
+    left: 5%;
+    top: 78.51851851851852%;
+    width: 28.749999999999996%;
+    height: 4.444444444444445%;
+    color: #10ff92;
+    font-size: clamp(12px, 1.25rem, 20px);
+    font-weight: bold;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    z-index: 8;
+    border-radius: 0px;
+    padding: 10px;
+    box-sizing: border-box;
+    
+   display: flex; align-items: flex-start; justify-content: flex-start; word-wrap: break-word; overflow-wrap: break-word; hyphens: auto;">
+      Sample video:                 
+    </div>
+  
+    <div class="mobile-element-9" style="
+    position: absolute;
+    left: 42.5%;
+    top: 78.51851851851852%;
+    width: 36.25%;
+    height: 4.444444444444445%;
+    color: #8b5cf6;
+    font-size: clamp(12px, 1.25rem, 20px);
+    font-weight: bold;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    z-index: 9;
+    border-radius: 0px;
+    padding: 10px;
+    box-sizing: border-box;
+    
+   display: flex; align-items: flex-start; justify-content: flex-start; word-wrap: break-word; overflow-wrap: break-word; hyphens: auto;">
+      Upload your video here:                 
+    </div>
+  
+      <a href="https://drive.google.com/drive/folders/1M_RDLIPIWH5zGXAy6ZIN0HCYBKpguyGx" target="_blank" class="mobile-element-10" style="
+    position: absolute;
+    left: 5%;
+    top: 83.7037037037037%;
+    width: 25%;
+    height: 3.7037037037037033%;
+    color: #000000;
+    font-size: clamp(10px, 1rem, 16px);
+    font-weight: normal;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    z-index: 10;
+    border-radius: 25px;
+    padding: 15px;
+    box-sizing: border-box;
+    background: #10ff92;
+   display: flex; align-items: center; justify-content: center; text-decoration: none; cursor: pointer; transition: transform 0.2s ease; min-height: 40px;"
+         onmouseover="this.style.transform='scale(1.05)'"
+         onmouseout="this.style.transform='scale(1)'">
+        Click Here
+      </a>
+    
+      <a href="https://drive.google.com/drive/folders/1QiLHDFu4mmJfJcjX9E28v2lwcxjrFD4q?usp=sharing" target="_blank" class="mobile-element-11" style="
+    position: absolute;
+    left: 42.5%;
+    top: 83.7037037037037%;
+    width: 25%;
+    height: 3.7037037037037033%;
+    color: #ffffff;
+    font-size: clamp(10px, 1rem, 16px);
+    font-weight: normal;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    z-index: 11;
+    border-radius: 25px;
+    padding: 15px;
+    box-sizing: border-box;
+    background: #7822ff;
+   display: flex; align-items: center; justify-content: center; text-decoration: none; cursor: pointer; transition: transform 0.2s ease; min-height: 40px;"
+         onmouseover="this.style.transform='scale(1.05)'"
+         onmouseout="this.style.transform='scale(1)'">
+        Click Here
+      </a>
+    
+    <div class="mobile-element-12" style="
+    position: absolute;
+    left: 5%;
+    top: 23.703703703703706%;
+    width: 88.75%;
+    height: 3.7037037037037033%;
+    color: #ffffff;
+    font-size: clamp(10.799999999999999px, 1.125rem, 18px);
+    font-weight: semibold;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    z-index: 12;
+    border-radius: 0px;
+    padding: 10px;
+    box-sizing: border-box;
+    
+   display: flex; align-items: flex-start; justify-content: flex-start; word-wrap: break-word; overflow-wrap: break-word; hyphens: auto;">
+      GripX just launched mobile triggers made for FPS players who want pro-level gameplay. Boosts reaction time, accuracy, and in-game performance.
+    </div>
+  
+    <div class="footer">
+        <a href="https://trueconext.com/" target="_blank" rel="noopener noreferrer">
+            <img src="https://raw.githubusercontent.com/Trueconext/TrueConextW/refs/heads/main/Icon%20Only%20No%20Background.png" alt="TrueConext Logo" style="width: 16px; height: 16px; object-fit: contain;" />
+            Powered by TrueConext
+        </a>
+    </div>
+</div>
+</body>
+</html>
